@@ -1,0 +1,285 @@
+seq_builder : cseq_builder
+cseq_builder: [<rockmate.csequence.SeqBlockFe object at 0x153c8b57b210>, <rockmate.csequence.SeqBlockFe object at 0x153c90dcb690>, <rockmate.csequence.SeqBlockFe object at 0x153c8b579b50>, <rockmate.csequence.SeqBlockFe object at 0x153c8b578fd0>, <rockmate.csequence.SeqBlockFe object at 0x153c8b57a450>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2ea10>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2d5d0>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2d2d0>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2eb10>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2cf90>, <rockmate.csequence.SeqBlockFe object at 0x153c8ac2dc50>, <rockmate.csequence.SeqLoss object at 0x153c8ac2f8d0>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2d090>, <rockmate.csequence.SeqBlockBwd object at 0x153c912f6a50>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2f250>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2d010>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2e010>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2d610>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2dfd0>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2e850>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2e810>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2e210>, <rockmate.csequence.SeqBlockBwd object at 0x153c8ac2e6d0>]
+fwd_seq: Fe Block 0 in 0.21401600042978922
+Run fwd___10_input
+|  Run fwd_loss
+Fe Block 1 in 0.07884800185759862
+Run fwd___7_input
+|  Run fwd_loss
+Fe Block 2 in 0.12050133695205052
+Run fwd___16_input0
+|  Run fwd_loss
+Fe Block 3 in 0.21400533119837442
+Run fwd___23_input
+|  Run fwd_loss
+Fe Block 4 in 0.07918933530648549
+Run fwd___28_input0
+|  Run fwd_loss
+Fe Block 5 in 0.16998399794101715
+Run fwd___30_x
+|  Run fwd_loss
+Fe Block 6 in 0.13789866864681244
+Run fwd___39_fv
+|  Run fwd_loss
+Fe Block 7 in 0.07850666840871175
+Run fwd___36_input2
+|  Run fwd_loss
+Fe Block 8 in 0.1252693310379982
+Run fwd___43_fv
+|  Run fwd_loss
+Fe Block 9 in 0.07612800101439159
+Run fwd___40_input3
+|  Run fwd_loss
+Fe Block 10 in 0.1303893302877744
+Run fwd___46_fv
+|  Run fwd_loss
+bwd_seq: Bwd Block 10 in 0.3625173370043437
+Run fwd_loss
+|  Del __46_fv data
+|  Run bwd___46_fv
+|  Del __46_fv phantoms
+|  Del __46_fv grad
+Bwd Block 9 in 0.17545599738756815
+Run fwd_loss
+|  Run bwd___40_input3
+|  Del __40_input3 data
+|  Del __40_input3 grad
+Bwd Block 8 in 0.36078933874766034
+Run fwd_loss
+|  Del __43_fv data
+|  Run bwd___43_fv
+|  Del __43_fv phantoms
+|  Del __43_fv grad
+Bwd Block 7 in 0.17205333213011423
+Run fwd_loss
+|  Run bwd___36_input2
+|  Del __36_input2 data
+|  Del __36_input2 grad
+Bwd Block 6 in 0.43485865990320843
+Run fwd_loss
+|  Del __39_fv data
+|  Run bwd___39_fv
+|  Del __39_fv phantoms
+|  Del __39_fv grad
+Bwd Block 5 in 0.19285333653291067
+Run fwd_loss
+|  Del __30_x data
+|  Run bwd___30_x
+|  Del __30_x phantoms
+|  Del __30_x grad
+Bwd Block 4 in 0.1795413394769033
+Run fwd_loss
+|  Run bwd___28_input0
+|  Del __28_input0 data
+|  Del __28_input0 grad
+Bwd Block 3 in 0.36182400584220886
+Run fwd_loss
+|  Del __23_input data
+|  Run bwd___23_input
+|  Del __23_input grad
+Bwd Block 2 in 0.19319466749827066
+Run fwd_loss
+|  Del __16_input0 data
+|  Run bwd___16_input0
+|  Del __16_input0 phantoms
+|  Del __16_input0 grad
+Bwd Block 1 in 0.17681066691875458
+Run fwd_loss
+|  Run bwd___7_input
+|  Del __7_input data
+|  Del __7_input grad
+Bwd Block 0 in 0.2778239945570628
+Run fwd_loss
+|  Del __10_input data
+|  Run bwd___10_input
+|  Del __10_input grad
+fwd_op_sched_list: [<rockmate.def_op.OpSchedule object at 0x153c8ac59b90>, <rockmate.def_op.OpSchedule object at 0x153c8ac0b8d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac5f7d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac05550>, <rockmate.def_op.OpSchedule object at 0x153c8ac5d090>, <rockmate.def_op.OpSchedule object at 0x153c8ac21c10>, <rockmate.def_op.OpSchedule object at 0x153c8ac73050>, <rockmate.def_op.OpSchedule object at 0x153c8ac09590>, <rockmate.def_op.OpSchedule object at 0x153c8ac82910>, <rockmate.def_op.OpSchedule object at 0x153c8ac73dd0>, <rockmate.def_op.OpSchedule object at 0x153c8b5fd750>]
+
+bwd_op_sched_list: [<rockmate.def_op.OpSchedule object at 0x153c8b5ff690>, <rockmate.def_op.OpSchedule object at 0x153c8ac719d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac82b90>, <rockmate.def_op.OpSchedule object at 0x153c8ac085d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac72390>, <rockmate.def_op.OpSchedule object at 0x153c8ac21110>, <rockmate.def_op.OpSchedule object at 0x153c8ac5f590>, <rockmate.def_op.OpSchedule object at 0x153c8ac05c50>, <rockmate.def_op.OpSchedule object at 0x153c8ac5c310>, <rockmate.def_op.OpSchedule object at 0x153c8ac08590>, <rockmate.def_op.OpSchedule object at 0x153c8ac5bb90>]
+
+fwd_op_list: [<rockmate.def_op.RunOp object at 0x153c8b515fd0>, <rockmate.def_op.RunOp object at 0x153c8b5d8b90>, <rockmate.def_op.RunOp object at 0x153c8ac08ad0>, <rockmate.def_op.RunOp object at 0x153c90db2750>, <rockmate.def_op.RunOp object at 0x153c8ac5dd90>, <rockmate.def_op.RunOp object at 0x153c8ac06990>, <rockmate.def_op.RunOp object at 0x153c8b5fe1d0>, <rockmate.def_op.RunOp object at 0x153c8b59c1d0>, <rockmate.def_op.RunOp object at 0x153c8ac5eb50>, <rockmate.def_op.RunOp object at 0x153c8b5ada10>, <rockmate.def_op.RunOp object at 0x153c8ac239d0>, <rockmate.def_op.RunOp object at 0x153c8b5b9f50>, <rockmate.def_op.RunOp object at 0x153c8ac73290>, <rockmate.def_op.RunOp object at 0x153c8b559c90>, <rockmate.def_op.RunOp object at 0x153c8ac05510>, <rockmate.def_op.RunOp object at 0x153c8ac05090>, <rockmate.def_op.RunOp object at 0x153c8ac82810>, <rockmate.def_op.RunOp object at 0x153c8ac5b350>, <rockmate.def_op.RunOp object at 0x153c8ac70610>, <rockmate.def_op.RunOp object at 0x153c8b578110>, <rockmate.def_op.RunOp object at 0x153c8ac5c490>, <rockmate.def_op.RunOp object at 0x153c8ac7de50>]
+
+bwd_op_list: [<rockmate.def_op.RunOp object at 0x153c8ac7ed90>, <rockmate.def_op.DelOp object at 0x153c8ac5c750>, <rockmate.def_op.RunOp object at 0x153c8b586450>, <rockmate.def_op.DelOp object at 0x153c8b5fee10>, <rockmate.def_op.DelOp object at 0x153c8b5fed10>, <rockmate.def_op.RunOp object at 0x153c8ac71710>, <rockmate.def_op.RunOp object at 0x153c8ac73090>, <rockmate.def_op.DelOp object at 0x153c8b5d93d0>, <rockmate.def_op.DelOp object at 0x153c8ac70350>, <rockmate.def_op.RunOp object at 0x153c8ac33f10>, <rockmate.def_op.DelOp object at 0x153c8ac48bd0>, <rockmate.def_op.RunOp object at 0x153c8ac83950>, <rockmate.def_op.DelOp object at 0x153c8ac81f90>, <rockmate.def_op.DelOp object at 0x153c8ac81190>, <rockmate.def_op.RunOp object at 0x153c8b538690>, <rockmate.def_op.RunOp object at 0x153c8ac80ed0>, <rockmate.def_op.DelOp object at 0x153c8ac0ab50>, <rockmate.def_op.DelOp object at 0x153c8ac0b190>, <rockmate.def_op.RunOp object at 0x153c8ac71fd0>, <rockmate.def_op.DelOp object at 0x153c8ac721d0>, <rockmate.def_op.RunOp object at 0x153c8ac70b50>, <rockmate.def_op.DelOp object at 0x153c8ac72890>, <rockmate.def_op.DelOp object at 0x153c8ac72a90>, <rockmate.def_op.RunOp object at 0x153c8b5ca390>, <rockmate.def_op.DelOp object at 0x153c8b579310>, <rockmate.def_op.RunOp object at 0x153c8ac21990>, <rockmate.def_op.DelOp object at 0x153c8ac20dd0>, <rockmate.def_op.DelOp object at 0x153c8ac20550>, <rockmate.def_op.RunOp object at 0x153c8b584150>, <rockmate.def_op.RunOp object at 0x153c8ac2fd50>, <rockmate.def_op.DelOp object at 0x153c8b57da90>, <rockmate.def_op.DelOp object at 0x153c8ac5fa10>, <rockmate.def_op.RunOp object at 0x153c8b5ff250>, <rockmate.def_op.DelOp object at 0x153c8b5ad510>, <rockmate.def_op.RunOp object at 0x153c8ac052d0>, <rockmate.def_op.DelOp object at 0x153c8ac06390>, <rockmate.def_op.RunOp object at 0x153c8b584950>, <rockmate.def_op.DelOp object at 0x153c8b5fe590>, <rockmate.def_op.RunOp object at 0x153c8ac063d0>, <rockmate.def_op.DelOp object at 0x153c8ac5d3d0>, <rockmate.def_op.DelOp object at 0x153c8ac5e810>, <rockmate.def_op.RunOp object at 0x153c8ac485d0>, <rockmate.def_op.RunOp object at 0x153c8b55b5d0>, <rockmate.def_op.DelOp object at 0x153c8ac4b090>, <rockmate.def_op.DelOp object at 0x153c8ac08990>, <rockmate.def_op.RunOp object at 0x153c8b57b0d0>, <rockmate.def_op.DelOp object at 0x153c8ac32690>, <rockmate.def_op.RunOp object at 0x153c8ac30310>, <rockmate.def_op.DelOp object at 0x153c8ac59f50>]
+
+fwd_op: fwd___10_input, __10_input
+main code: ('__10_input', <ast.Call object at 0x153c8b6fd090>)
+body code: []
+deps_global: ['sources data']
+user_global: ['__10_input data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6fcd60>)
+body code: []
+deps_global: ['__10_input data']
+user_global: ['__10_input grad']
+fwd_op: fwd___7_input, __7_input
+main code: ('__7_input', <ast.Call object at 0x153c8b6fdf90>)
+body code: []
+deps_global: ['__10_input data']
+user_global: ['__7_input data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6ffb20>)
+body code: []
+deps_global: ['__7_input data']
+user_global: ['__7_input grad']
+fwd_op: fwd___16_input0, __16_input0
+main code: ('__16_input0', <ast.Call object at 0x153c8b5512d0>)
+body code: []
+deps_global: ['__7_input data']
+user_global: ['__16_input0 data', '__16_input0 phantoms']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6fd750>)
+body code: []
+deps_global: ['__16_input0 data']
+user_global: ['__16_input0 grad']
+fwd_op: fwd___23_input, __23_input
+main code: ('__23_input', <ast.Call object at 0x153c8b551240>)
+body code: []
+deps_global: ['__16_input0 data']
+user_global: ['__23_input data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6fe470>)
+body code: []
+deps_global: ['__23_input data']
+user_global: ['__23_input grad']
+fwd_op: fwd___28_input0, __28_input0
+main code: ('__28_input0', <ast.Call object at 0x153c8b550b80>)
+body code: []
+deps_global: ['__23_input data']
+user_global: ['__28_input0 data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6ffeb0>)
+body code: []
+deps_global: ['__28_input0 data']
+user_global: ['__28_input0 grad']
+fwd_op: fwd___30_x, __30_x
+main code: ('__30_x', <ast.Call object at 0x153c8b550cd0>)
+body code: [('__29_input1', <ast.Call object at 0x153c8b551510>)]
+deps_global: ['__28_input0 data']
+user_global: ['__30_x data', '__30_x phantoms']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6ff250>)
+body code: []
+deps_global: ['__30_x data']
+user_global: ['__30_x grad']
+fwd_op: fwd___39_fv, __39_fv
+main code: ('__39_fv', <ast.Call object at 0x153c8b5500d0>)
+body code: []
+deps_global: ['__30_x data']
+user_global: ['__39_fv data', '__39_fv phantoms']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6fe590>)
+body code: []
+deps_global: ['__39_fv data']
+user_global: ['__39_fv grad']
+fwd_op: fwd___36_input2, __36_input2
+main code: ('__36_input2', <ast.Call object at 0x153c8b550040>)
+body code: []
+deps_global: ['__39_fv data']
+user_global: ['__36_input2 data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6ffaf0>)
+body code: []
+deps_global: ['__36_input2 data']
+user_global: ['__36_input2 grad']
+fwd_op: fwd___43_fv, __43_fv
+main code: ('__43_fv', <ast.Call object at 0x153c8b550070>)
+body code: []
+deps_global: ['__36_input2 data']
+user_global: ['__43_fv data', '__43_fv phantoms']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b6ffee0>)
+body code: []
+deps_global: ['__43_fv data']
+user_global: ['__43_fv grad']
+fwd_op: fwd___40_input3, __40_input3
+main code: ('__40_input3', <ast.Call object at 0x153c8b551540>)
+body code: []
+deps_global: ['__43_fv data']
+user_global: ['__40_input3 data']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b551750>)
+body code: []
+deps_global: ['__40_input3 data']
+user_global: ['__40_input3 grad']
+fwd_op: fwd___46_fv, __46_fv
+main code: ('__46_fv', <ast.Call object at 0x153c8b551780>)
+body code: []
+deps_global: ['__40_input3 data']
+user_global: ['__46_fv data', '__46_fv phantoms']
+fwd_op: fwd_loss, loss
+main code: ('loss', <ast.Constant object at 0x153c8b550940>)
+body code: []
+deps_global: ['__46_fv data']
+user_global: ['__46_fv grad']
+RK_Storage: gd: {'__name__': 'rockmate.compiler', '__doc__': None, '__package__': 'rockmate', '__loader__': <_frozen_importlib_external.SourceFileLoader object at 0x153c9052fcd0>, '__spec__': ModuleSpec(name='rockmate.compiler', loader=<_frozen_importlib_external.SourceFileLoader object at 0x153c9052fcd0>, origin='/home/tumi/rockmate/rockmate/src/compiler.py'), '__file__': '/home/tumi/rockmate/rockmate/src/compiler.py', '__cached__': '/home/tumi/rockmate/rockmate/src/__pycache__/compiler.cpython-311.pyc', '__builtins__': {'__name__': 'builtins', '__doc__': "Built-in functions, exceptions, and other objects.\n\nNoteworthy: None is the `nil' object; Ellipsis represents `...' in slices.", '__package__': '', '__loader__': <class '_frozen_importlib.BuiltinImporter'>, '__spec__': ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>, origin='built-in'), '__build_class__': <built-in function __build_class__>, '__import__': <built-in function __import__>, 'abs': <built-in function abs>, 'all': <built-in function all>, 'any': <built-in function any>, 'ascii': <built-in function ascii>, 'bin': <built-in function bin>, 'breakpoint': <built-in function breakpoint>, 'callable': <built-in function callable>, 'chr': <built-in function chr>, 'compile': <built-in function compile>, 'delattr': <built-in function delattr>, 'dir': <built-in function dir>, 'divmod': <built-in function divmod>, 'eval': <built-in function eval>, 'exec': <built-in function exec>, 'format': <built-in function format>, 'getattr': <built-in function getattr>, 'globals': <built-in function globals>, 'hasattr': <built-in function hasattr>, 'hash': <built-in function hash>, 'hex': <built-in function hex>, 'id': <built-in function id>, 'input': <built-in function input>, 'isinstance': <built-in function isinstance>, 'issubclass': <built-in function issubclass>, 'iter': <built-in function iter>, 'aiter': <built-in function aiter>, 'len': <built-in function len>, 'locals': <built-in function locals>, 'max': <built-in function max>, 'min': <built-in function min>, 'next': <built-in function next>, 'anext': <built-in function anext>, 'oct': <built-in function oct>, 'ord': <built-in function ord>, 'pow': <built-in function pow>, 'print': <built-in function print>, 'repr': <built-in function repr>, 'round': <built-in function round>, 'setattr': <built-in function setattr>, 'sorted': <built-in function sorted>, 'sum': <built-in function sum>, 'vars': <built-in function vars>, 'None': None, 'Ellipsis': Ellipsis, 'NotImplemented': NotImplemented, 'False': False, 'True': True, 'bool': <class 'bool'>, 'memoryview': <class 'memoryview'>, 'bytearray': <class 'bytearray'>, 'bytes': <class 'bytes'>, 'classmethod': <class 'classmethod'>, 'complex': <class 'complex'>, 'dict': <class 'dict'>, 'enumerate': <class 'enumerate'>, 'filter': <class 'filter'>, 'float': <class 'float'>, 'frozenset': <class 'frozenset'>, 'property': <class 'property'>, 'int': <class 'int'>, 'list': <class 'list'>, 'map': <class 'map'>, 'object': <class 'object'>, 'range': <class 'range'>, 'reversed': <class 'reversed'>, 'set': <class 'set'>, 'slice': <class 'slice'>, 'staticmethod': <class 'staticmethod'>, 'str': <class 'str'>, 'super': <class 'super'>, 'tuple': <class 'tuple'>, 'type': <class 'type'>, 'zip': <class 'zip'>, '__debug__': True, 'BaseException': <class 'BaseException'>, 'BaseExceptionGroup': <class 'BaseExceptionGroup'>, 'Exception': <class 'Exception'>, 'GeneratorExit': <class 'GeneratorExit'>, 'KeyboardInterrupt': <class 'KeyboardInterrupt'>, 'SystemExit': <class 'SystemExit'>, 'ArithmeticError': <class 'ArithmeticError'>, 'AssertionError': <class 'AssertionError'>, 'AttributeError': <class 'AttributeError'>, 'BufferError': <class 'BufferError'>, 'EOFError': <class 'EOFError'>, 'ImportError': <class 'ImportError'>, 'LookupError': <class 'LookupError'>, 'MemoryError': <class 'MemoryError'>, 'NameError': <class 'NameError'>, 'OSError': <class 'OSError'>, 'ReferenceError': <class 'ReferenceError'>, 'RuntimeError': <class 'RuntimeError'>, 'StopAsyncIteration': <class 'StopAsyncIteration'>, 'StopIteration': <class 'StopIteration'>, 'SyntaxError': <class 'SyntaxError'>, 'SystemError': <class 'SystemError'>, 'TypeError': <class 'TypeError'>, 'ValueError': <class 'ValueError'>, 'Warning': <class 'Warning'>, 'FloatingPointError': <class 'FloatingPointError'>, 'OverflowError': <class 'OverflowError'>, 'ZeroDivisionError': <class 'ZeroDivisionError'>, 'BytesWarning': <class 'BytesWarning'>, 'DeprecationWarning': <class 'DeprecationWarning'>, 'EncodingWarning': <class 'EncodingWarning'>, 'FutureWarning': <class 'FutureWarning'>, 'ImportWarning': <class 'ImportWarning'>, 'PendingDeprecationWarning': <class 'PendingDeprecationWarning'>, 'ResourceWarning': <class 'ResourceWarning'>, 'RuntimeWarning': <class 'RuntimeWarning'>, 'SyntaxWarning': <class 'SyntaxWarning'>, 'UnicodeWarning': <class 'UnicodeWarning'>, 'UserWarning': <class 'UserWarning'>, 'BlockingIOError': <class 'BlockingIOError'>, 'ChildProcessError': <class 'ChildProcessError'>, 'ConnectionError': <class 'ConnectionError'>, 'FileExistsError': <class 'FileExistsError'>, 'FileNotFoundError': <class 'FileNotFoundError'>, 'InterruptedError': <class 'InterruptedError'>, 'IsADirectoryError': <class 'IsADirectoryError'>, 'NotADirectoryError': <class 'NotADirectoryError'>, 'PermissionError': <class 'PermissionError'>, 'ProcessLookupError': <class 'ProcessLookupError'>, 'TimeoutError': <class 'TimeoutError'>, 'IndentationError': <class 'IndentationError'>, 'IndexError': <class 'IndexError'>, 'KeyError': <class 'KeyError'>, 'ModuleNotFoundError': <class 'ModuleNotFoundError'>, 'NotImplementedError': <class 'NotImplementedError'>, 'RecursionError': <class 'RecursionError'>, 'UnboundLocalError': <class 'UnboundLocalError'>, 'UnicodeError': <class 'UnicodeError'>, 'BrokenPipeError': <class 'BrokenPipeError'>, 'ConnectionAbortedError': <class 'ConnectionAbortedError'>, 'ConnectionRefusedError': <class 'ConnectionRefusedError'>, 'ConnectionResetError': <class 'ConnectionResetError'>, 'TabError': <class 'TabError'>, 'UnicodeDecodeError': <class 'UnicodeDecodeError'>, 'UnicodeEncodeError': <class 'UnicodeEncodeError'>, 'UnicodeTranslateError': <class 'UnicodeTranslateError'>, 'ExceptionGroup': <class 'ExceptionGroup'>, 'EnvironmentError': <class 'OSError'>, 'IOError': <class 'OSError'>, 'open': <built-in function open>, 'quit': Use quit() or Ctrl-D (i.e. EOF) to exit, 'exit': Use exit() or Ctrl-D (i.e. EOF) to exit, 'copyright': Copyright (c) 2001-2023 Python Software Foundation.
+All Rights Reserved.
+
+Copyright (c) 2000 BeOpen.com.
+All Rights Reserved.
+
+Copyright (c) 1995-2001 Corporation for National Research Initiatives.
+All Rights Reserved.
+
+Copyright (c) 1991-1995 Stichting Mathematisch Centrum, Amsterdam.
+All Rights Reserved., 'credits':     Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands
+    for supporting Python development.  See www.python.org for more information., 'license': Type license() to see the full license text, 'help': Type help() for interactive help, or help(object) for help about object., '__pybind11_internals_v4_gcc_libstdcpp_cxxabi1011__': <capsule object NULL at 0x153d4e966a00>}, 'make_str_assign': <function make_str_assign at 0x153c90ceae80>, 'make_str_list_assign': <function make_str_list_assign at 0x153c90ceaf20>, 'np': <module 'numpy' from '/home/tumi/python_env/lib/python3.11/site-packages/numpy/__init__.py'>, 'torch': <module 'torch' from '/home/tumi/python_env/lib/python3.11/site-packages/torch/__init__.py'>, 'DelOp': <class 'rockmate.def_op.DelOp'>, 'fct_get_pack': <function fct_get_pack at 0x153c90531300>, 'fct_get_unpack': <function fct_get_unpack at 0x153c90531760>, 'fct_get_shapes': <function fct_get_shapes at 0x153c905318a0>, 'fct_get_rng_state': <function fct_get_rng_state at 0x153c90531940>, 'fct_restore_rng_state': <function fct_restore_rng_state at 0x153c905319e0>, 'fct_run_forward_no_grad': <function fct_run_forward_no_grad at 0x153c90531a80>, 'fct_run_forward_with_grad': <function fct_run_forward_with_grad at 0x153c90531b20>, 'fct_run_inplace': <function fct_run_inplace at 0x153c90531bc0>, 'fct_run_detach': <function fct_run_detach at 0x153c90531c60>, 'fct_assign_proxy': <function fct_assign_proxy at 0x153c90531d00>, 'fct_requires_grad': <function fct_requires_grad at 0x153c90531da0>, 'fct_run_backward': <function fct_run_backward at 0x153c90531e40>, 'fct_run_backward_with_inputs': <function fct_run_backward_with_inputs at 0x153c90531ee0>, 'fct_generate_fake_data': <function fct_generate_fake_data at 0x153c90531f80>, 'fct_del_tensor_data': <function fct_del_tensor_data at 0x153c90532020>, 'fct_del_tensor_base': <function fct_del_tensor_base at 0x153c905320c0>, 'fct_del_tensor_grad': <function fct_del_tensor_grad at 0x153c90532160>, 'fct_del_var': <function fct_del_var at 0x153c90532200>, 'RngState': <class 'rockmate.compiler.RngState'>, 'RK_Storage': <class 'rockmate.compiler.RK_Storage'>, 'Compiler': <class 'rockmate.compiler.Compiler'>, 'original_mod': SimpleCNN(
+  (conv1): Conv2d(3, 6, kernel_size=(5, 5), stride=(1, 1))
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (conv2): Conv2d(6, 16, kernel_size=(5, 5), stride=(1, 1))
+  (fc1): Linear(in_features=400, out_features=120, bias=True)
+  (fc2): Linear(in_features=120, out_features=84, bias=True)
+  (fc3): Linear(in_features=84, out_features=10, bias=True)
+), 'device': device(type='cuda'), 'meta': tensor([1.], device='cuda:0'), 'cmeta': tensor(1.+1.j, device='cuda:0')}
+dict_constants: {}
+init_code: 
+output main target: __46_fv
+k: x, v: tensor([[[[-0.5544, -2.0782, -1.0448,  ..., -0.3103,  1.9045, -0.3169],
+          [ 2.1843,  0.4185,  1.3813,  ...,  1.1610, -0.3953,  0.4635],
+          [ 0.2017, -0.4833,  1.8912,  ..., -0.1900,  0.1600,  2.1098],
+          ...,
+          [ 1.3287,  0.9852,  0.5566,  ..., -0.6520, -0.2324, -0.9398],
+          [-1.3040,  0.1187,  1.6060,  ..., -0.6871, -1.4302, -0.4347],
+          [-1.1073,  1.7267, -0.0996,  ..., -0.2627,  0.4990,  0.9207]],
+
+         [[ 0.4847, -1.2569,  0.7633,  ...,  0.1149,  0.9562, -0.5976],
+          [ 0.7201, -0.1983, -0.9405,  ...,  1.7127,  1.7535,  0.4126],
+          [-0.7938, -0.1159, -0.3451,  ..., -0.4624, -1.1946,  0.8270],
+          ...,
+          [ 0.4398,  0.6750,  0.6765,  ...,  0.0397, -0.0900, -1.4899],
+          [ 0.7173,  1.4209, -0.8314,  ..., -0.6128, -0.7272, -1.2231],
+          [-0.4496, -0.1671,  0.1187,  ...,  0.1996, -0.5067, -0.7337]],
+
+         [[ 0.4455, -1.5688,  0.7704,  ...,  1.1541, -0.7760,  0.2848],
+          [-1.2440,  0.6015, -0.7273,  ...,  1.7703, -0.6763,  1.2872],
+          [ 0.8631, -1.4960,  0.6923,  ..., -0.8889,  0.5958, -1.3956],
+          ...,
+          [ 0.9175,  1.0610, -0.4564,  ...,  0.4051, -0.2218,  2.7269],
+          [ 1.0692, -0.3510,  2.2895,  ..., -0.2850,  0.7777,  0.0610],
+          [ 1.5053, -0.1253,  1.0997,  ...,  0.5731,  3.6191, -0.7429]]]],
+       device='cuda:0')
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac64b80>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67380>, <function fct_run_detach.<locals>.fct at 0x153c8ac66de0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac665c0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac676a0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac677e0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac64d60>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65260>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac64cc0>, <function fct_run_detach.<locals>.fct at 0x153c8ac64ea0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65300>, <function fct_get_shapes.<locals>.fct at 0x153c8ac65080>, <function fct_get_shapes.<locals>.fct at 0x153c8ac651c0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac64fe0>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac656c0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65620>, <function fct_run_detach.<locals>.fct at 0x153c8ac653a0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac654e0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac65120>, <function fct_get_shapes.<locals>.fct at 0x153c8ac659e0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac65940>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65580>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65800>, <function fct_run_detach.<locals>.fct at 0x153c8ac65440>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65da0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac66020>, <function fct_get_shapes.<locals>.fct at 0x153c8ac658a0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac65ee0>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65760>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac660c0>, <function fct_run_detach.<locals>.fct at 0x153c8ac668e0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac65e40>, <function fct_get_shapes.<locals>.fct at 0x153c8ac66200>, <function fct_get_shapes.<locals>.fct at 0x153c8ac65f80>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac67100>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac66a20>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac66160>, <function fct_run_detach.<locals>.fct at 0x153c8ac66ac0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac662a0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac66fc0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac674c0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac67b00>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac67a60>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67600>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67e20>, <function fct_run_detach.<locals>.fct at 0x153c8ac67920>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67880>, <function fct_get_shapes.<locals>.fct at 0x153c8ac67ce0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac67560>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac67740>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67c40>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67ba0>, <function fct_run_detach.<locals>.fct at 0x153c8ac67ec0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac67f60>, <function fct_get_shapes.<locals>.fct at 0x153c8ac67d80>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8c040>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac8c0e0>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c220>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c2c0>, <function fct_run_detach.<locals>.fct at 0x153c8ac8c360>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c400>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8c4a0>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8c540>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac8c5e0>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c680>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c720>, <function fct_run_detach.<locals>.fct at 0x153c8ac8c7c0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8c860>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8c900>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8c9a0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac8ca40>]
+forward l: [<function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8cb80>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8cc20>, <function fct_run_detach.<locals>.fct at 0x153c8ac8ccc0>, <function fct_run_forward_with_grad.<locals>.fct at 0x153c8ac8cd60>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8ce00>, <function fct_get_shapes.<locals>.fct at 0x153c8ac8cea0>]
+forward l: [<function fct_run_forward_no_grad.<locals>.fct at 0x153c8ac8cf40>]
+---  Done rematerialization with Rockmate ----
+
+
+
