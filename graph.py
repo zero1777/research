@@ -2,7 +2,7 @@ import rkgb.src as rkgb
 from rkgb.utils.ast_add_on import ast_to_str
 
 # Purpose: parse the rkgb results into a class 
-class Geometric:
+class Graph:
     def __init__(
         self,
         original_model,
@@ -15,11 +15,11 @@ class Geometric:
         self.rkgb_results = rkgb.make_all_graphs(
             original_model, model_inputs, verbose=verbose, bool_kg=True
         )
-        self.kgraph_list = self.rkgb_results.K_graph_list
+        self.graph_list = self.rkgb_results.K_graph_list
         self.dict_constants = self.rkgb_results.K_graph_list[0].dict_constants
         self.eq_classes = self.rkgb_results.equivalent_classes
-        self.init_code = ast_to_str(self.kgraph_list[0].init_code)
-        self.output = self.kgraph_list[-1].output_kdn_data
+        self.init_code = ast_to_str(self.graph_list[0].init_code)
+        self.output = self.graph_list[-1].output_kdn_data
 
         
 
