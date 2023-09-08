@@ -18,7 +18,7 @@ from rockmate.def_sequence import (
 )
 from rockmate.rotor_solver import seq_builder, solve_dp_functionnal
 from rockmate.translator import Translator, RngState
-from rockmate.compiler import Compiler, RK_Storage
+from rockmate.compiler import Compiler, Storage
 import torch
 from torch import tensor
 import ast
@@ -228,7 +228,7 @@ class Rockmate(torch.nn.Module):
         self.simulation_overhead = self.simulation_time / sum(
             [kcn.time for kg in self.list_kg for kcn in kg.list_kcn]
         )
-        self.storage = RK_Storage(self.device, self.original_mod, self.dict_constants)
+        self.storage = Storage(self.device, self.original_mod, self.dict_constants)
 
     def get_compiled_fct(self):
         self.compiler = Compiler(self.storage)
@@ -346,7 +346,7 @@ class Rockmate(torch.nn.Module):
             sol = pickle.load(f)
         op_sched = sol["op_sched"]
         loss_idx = sol["loss_idx"]
-        self.storage = RK_Storage(self.device, self.original_mod, self.dict_constants)
+        self.storage = Storage(self.device, self.original_mod, self.dict_constants)
         self.compiler = Compiler(self.storage)
         self.fct_list = self.compiler.compile(op_sched)
         self.fwd_fct_list = self.fct_list[:loss_idx]

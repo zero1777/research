@@ -1,7 +1,7 @@
 from rkgb.utils.ast_add_on import make_str_assign, make_str_list_assign
 import torch
 import numpy as np
-from def_op import D_node 
+from node import D_node 
 
 # region Define Register Hooks
 def fct_get_pack(storage, no_save_list, sanity_check=False):
@@ -201,7 +201,7 @@ class RngState:
         torch.cuda.set_rng_state(self.gpu_states[op_name])
 
 
-class RK_Storage:
+class Storage:
     def __init__(self, device, nn_mod, dict_constants):
         self.gd = {
             **globals(),
