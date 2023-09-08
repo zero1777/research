@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
+from copy import deepcopy
 
 from geometric import Geometric
 from utils import *
@@ -145,6 +146,60 @@ class SimpleCNN(nn.Module):
         x = self.fc3(x)
         return x
 
+def verify(model1, model2, inputs, dict_kwargs=None):
+    '''
+        model1 : original model
+        model2 : asuta model 
+    '''
+    device = torch.device("cpu")
+    module = model1.graph.model
+    # module = model1
+    dict_inputs = rkgb.make_inputs(model2, inputs.to(device), dict_kwargs)
+    _dict_inputs = dict()
+    for k, v in dict_inputs.items():
+        if isinstance(v, torch.Tensor):
+            _dict_inputs[k] = v.clone()
+        else:
+            _dict_inputs[k] = deepcopy(v)
+
+    model1.train()
+    model2.train()
+    torch.random.manual_seed(0)
+    y1 = model1(**_dict_inputs)
+    torch.random.manual_seed(0)
+    y2 = model2(**dict_inputs)
+    same_train = torch.allclose(y1, y2)
+
+    model1.eval()
+    model2.eval()
+    torch.random.manual_seed(0)
+    y1 = model1(**_dict_inputs)
+    torch.random.manual_seed(0)
+    y2 = model2(**dict_inputs)
+    same_eval = torch.allclose(y1, y2)
+    if not same_eval:
+        print(torch.mean(y1 - y2)/y1)
+
+    same_grad = True
+    for n, _ in model2.named_parameters():
+        if not torch.allclose(model2.get_parameter(n), module.get_parameter(n)):
+            print("Unequal weight found in:", n)
+            same_grad = False
+
+        if (
+            model2.get_parameter(n).grad != None
+            and module.get_parameter(n).grad != None
+        ):
+            grad1 = module.get_parameter(n).grad
+            grad2 = model2.get_parameter(n).grad
+            if not torch.allclose(grad1, grad2):
+                print("Unequal grad found in:", n)
+                print(torch.mean((grad1 - grad2) / grad1))
+                same_grad = False
+
+    return same_train, same_eval, same_grad
+
+
 def test(model, sample):
     for_rkgb = rkgb.make_all_graphs(model, sample, verbose=False, bool_kg=True)
     kgraph_list = for_rkgb.K_graph_list
@@ -233,15 +288,27 @@ def test(model, sample):
     # compiler = Compiler(op_sched)
 
 model = SimpleCNN()
-sample = [torch.randn(1, 3, 32, 32)]
+sample = [torch.rand(1, 3, 32, 32)]
 
-model = models.resnet18()
-sample = torch.randn(1, 3, 224, 224)
+model = models.vgg16()
+sample = torch.rand(5, 3, 244, 244)
+# y = model(sample)
+
+same_train, same_eval, same_grad = verify(Asuta(model, sample), model, sample)
+# same_train, same_eval, same_grad = verify(model, model, sample)
+if same_train:
+    print(f'---  Same training result ----')
+if same_eval:
+    print(f'---  Same evaluation result ----')
+if same_grad:
+    print(f'---  Same gradient ----')
 
 print("---  Doing rematerialization with Asuta ----")
 # test(model, sample)
-for_test = Asuta(model, sample)
-# r1 = for_test(*sample)
+# for_test = Asuta(model, sample)
+# y = for_test(sample)
+# loss = y.mean()
+# loss.backward()
 # r2 = model(*sample)
 # if torch.equal(r1, r2):
 #     print('---  Rematerialization with Asuta is correct ----')
