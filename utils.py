@@ -59,4 +59,10 @@ def compare(model1, model2, inputs, dict_kwargs=None):
                 print(torch.mean((grad1 - grad2) / grad1))
                 same_grad = False
 
-    return same_train, same_eval, same_grad
+    if same_train:
+        print(f'---  Same training result ----')
+    if same_eval:
+        print(f'---  Same evaluation result ----')
+    if same_grad:
+        print(f'---  Same gradient ----')
+ 

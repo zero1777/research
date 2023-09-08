@@ -154,14 +154,8 @@ model = models.resnet50()
 sample = torch.rand(5, 3, 244, 244)
 # y = model(sample)
 
-same_train, same_eval, same_grad = compare(Asuta(model, sample), model, sample)
+compare(Asuta(model, sample), model, sample)
 # same_train, same_eval, same_grad = verify(model, model, sample)
-if same_train:
-    print(f'---  Same training result ----')
-if same_eval:
-    print(f'---  Same evaluation result ----')
-if same_grad:
-    print(f'---  Same gradient ----')
 
 print("---  Doing rematerialization with Asuta ----")
 # test(model, sample)
