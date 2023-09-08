@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from graph import Graph
 from utils import *
-from def_op import RunOp, DelOp, OpSchedule
+from def_op import C_node, D_node, OpSchedule
 from compiler import Compiler, RngState, RK_Storage
 
 
@@ -43,8 +43,8 @@ class Asuta(torch.nn.Module):
 
             for kcn in kg.list_kcn:
                 if "loss" in kcn.name:
-                    op_list.append(RunOp(kcn))
-                op_list.append(RunOp(kcn))
+                    op_list.append(C_node(kcn))
+                op_list.append(C_node(kcn))
 
                 for deps in kcn.deps_global:
                     if deps.name not in users:
@@ -52,7 +52,7 @@ class Asuta(torch.nn.Module):
                     if deps not in kcn.deps_fake:
                         users[deps.name] -= 1
                         if users[deps.name] == 0:
-                            op_list.append(DelOp(deps))
+                            op_list.append(D_node(deps))
             
             # debug
             # for op in op_list:
@@ -202,7 +202,7 @@ def verify(model1, model2, inputs, dict_kwargs=None):
 model = SimpleCNN()
 sample = [torch.rand(1, 3, 32, 32)]
 
-model = models.resnet101()
+model = models.resnet50()
 sample = torch.rand(5, 3, 244, 244)
 # y = model(sample)
 

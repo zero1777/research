@@ -8,8 +8,7 @@ import numpy as np
 import torch
 import warnings
 
-
-class RunOp:
+class C_node: # computation node 
     def __init__(self, kcn, keep_kcn=False):
         self.name = kcn.name
         self.time = kcn.time
@@ -45,10 +44,10 @@ class RunOp:
         return check_attr(self, op2, ["name"])
 
     def __str__(self):
-        return f"Run {self.name}"
+        return f"C_node: Run {self.name}"
 
 
-class DelOp:
+class D_node: # data node
     def __init__(self, kdn, proxy=True):
         self.name = kdn.name
         self.kdn_type = kdn.kdn_type
@@ -108,7 +107,7 @@ class OpSchedule:
 
         # save the del_input op in case needed
         input_kdn = input_kdn_data
-        self.del_input_op = DelOp(input_kdn, proxy=False)
+        self.del_input_op = D_node(input_kdn, proxy=False)
         self.del_input_idx = L
 
         list_kdn = list_kdn + [input_kdn_grad, input_kdn_data]
@@ -132,7 +131,7 @@ class OpSchedule:
         input_grad = False
         output_grad = False
         for i, op in enumerate(self.op_list):
-            if isinstance(op, RunOp):
+            if isinstance(op, C_node):
                 self.tmp[i] = op.overhead
                 if "bwd" in op.name:
                     self.is_fwd = False
@@ -163,7 +162,7 @@ class OpSchedule:
         """
         input_kdn_name = kg.input_kdn_data.name
         for i, op in enumerate(self.op_list):
-            if isinstance(op, RunOp) and input_kdn_name in op.deps_global:
+            if isinstance(op, C_node) and input_kdn_name in op.deps_global:
                 self.del_input_idx = i + 1
 
     def del_input(self):

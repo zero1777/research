@@ -1,7 +1,7 @@
 from rkgb.utils.ast_add_on import make_str_assign, make_str_list_assign
 import torch
 import numpy as np
-from def_op import DelOp
+from def_op import D_node 
 
 # region Define Register Hooks
 def fct_get_pack(storage, no_save_list, sanity_check=False):
