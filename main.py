@@ -19,10 +19,8 @@ class Asuta(torch.nn.Module):
         self,
         original_model,
         model_inputs,
-        mode = "training",
     ):
         super().__init__()
-        self.mode = mode # or "inference"
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
@@ -103,7 +101,7 @@ class Asuta(torch.nn.Module):
             fct()
     
     def forward(self, *args, **kwargs):
-        if self.mode == "inference":
+        if not self.training:
             self.graph.model.eval()
             return self.graph.model(*args, **kwargs)
         
@@ -126,6 +124,10 @@ class Asuta(torch.nn.Module):
             self._exec(l)
 
         return self.storage.get_val(self.graph.output.main_target)
+    
+    def backward(self):
+        for l in self.bwd_fct_list:
+            self._exec(l)
 
 class SimpleCNN(nn.Module):
     def __init__(self):
@@ -147,23 +149,21 @@ class SimpleCNN(nn.Module):
         return x
 
 
-model = SimpleCNN()
-sample = [torch.rand(1, 3, 32, 32)]
+device = torch.device("cuda")
 
-model = models.resnet50()
-sample = torch.rand(5, 3, 244, 244)
+model = SimpleCNN().to(device)
+sample = [torch.rand(1, 3, 32, 32).to(device)]
+
+# model = models.resnet18().to(device)
+# sample = torch.rand(5, 3, 224, 224).to(device)
 # y = model(sample)
 
-compare(Asuta(model, sample), model, sample)
-# same_train, same_eval, same_grad = verify(model, model, sample)
+# compare(Asuta(model, sample), model, sample)
 
 print("---  Doing rematerialization with Asuta ----")
-# test(model, sample)
-# for_test = Asuta(model, sample)
+
+for_test = Asuta(model, sample)
+train_test(for_test, sample)
 # y = for_test(sample)
-# loss = y.mean()
-# loss.backward()
-# r2 = model(*sample)
-# if torch.equal(r1, r2):
-#     print('---  Rematerialization with Asuta is correct ----')
+
 print('---  Done rematerialization with Asuta ----')

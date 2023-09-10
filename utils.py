@@ -13,10 +13,9 @@ def compare(model1, model2, inputs, dict_kwargs=None):
         model1 : original model
         model2 : asuta model 
     '''
-    device = torch.device("cpu")
     module = model1.graph.model
     # module = model1
-    dict_inputs = rkgb.make_inputs(model2, inputs.to(device), dict_kwargs)
+    dict_inputs = rkgb.make_inputs(model2, inputs, dict_kwargs)
     _dict_inputs = dict()
     for k, v in dict_inputs.items():
         if isinstance(v, torch.Tensor):
@@ -66,3 +65,15 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
+def train_test(mod, inputs, repeat=10):
+    try:
+        _x = rkgb.make_inputs(mod.graph.model, inputs, None)
+        for _ in range(repeat):
+            # torch.random.manual_seed(0)
+            y = mod(**_x)
+            loss = y.mean()
+            loss.backward()
+            print(f'loss: {loss}')
+            mod.backward()
+    except Exception as e:
+        print(e)
