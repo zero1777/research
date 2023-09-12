@@ -65,7 +65,7 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
-def train_test(mod, inputs, repeat=10):
+def train_test(mod, inputs, optimizer, repeat=10):
     try:
         _x = rkgb.make_inputs(mod.graph.model, inputs, None)
         for _ in range(repeat):
@@ -75,5 +75,16 @@ def train_test(mod, inputs, repeat=10):
             loss.backward()
             print(f'loss: {loss}')
             mod.backward()
+            optimizer.step()
     except Exception as e:
         print(e)
+
+def normal_model_train_test(model, sample):
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+    for _ in range(10):
+        # torch.random.manual_seed(0)
+        y = model(*sample)
+        loss = y.mean()
+        loss.backward()
+        print(f'loss: {loss}')
+        optimizer.step()

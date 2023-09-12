@@ -243,11 +243,13 @@ class Compiler:
         self.shapes = storage.shapes
         self.device = self.storage.gd["device"]
 
-    def _is_alive(self, kdn_name, i):
+    def _is_alive(self, op, kdn_name):
         if kdn_name in self.op_sched.kdn_names:
-            return self.op_sched.alive_list[i][
-                self.op_sched.kdn_names.index(kdn_name)
-            ]
+            return kdn_name in op.alive_datas
+        # if kdn_name in self.op_sched.kdn_names:
+        #     return self.op_sched.alive_list[i][
+        #         self.op_sched.kdn_names.index(kdn_name)
+        #     ]
 
         else:
             return True
@@ -365,16 +367,17 @@ class Compiler:
             else:
                 l.append(fct_restore_rng_state(self.storage, op.name))
 
-        # temporary_tensor_names = [
-        #     kdn_name.split(" ")[0]
-        #     for kdn_name in op.deps_fake
-        #     if not self._is_alive(kdn_name, i)
-        # ]
-        # if op.main_target in temporary_tensor_names:
-        #     temporary_tensor_names.append(f"_{op.main_target}")
-        # for tensor_name in temporary_tensor_names:
-        #     l.append(fct_generate_fake_data(self.storage, tensor_name))
-        #     l2.append(fct_del_tensor_data(self.storage, tensor_name))
+        temporary_tensor_names = [
+            kdn_name.split(" ")[0]
+            for kdn_name in op.deps_fake
+            if not self._is_alive(op, kdn_name)
+        ]
+        if op.main_target in temporary_tensor_names:
+            temporary_tensor_names.append(f"_{op.main_target}")
+        for tensor_name in temporary_tensor_names:
+            l.append(fct_generate_fake_data(self.storage, tensor_name))
+            l2.append(fct_del_tensor_data(self.storage, tensor_name))
+
         if rec:
             prev_i = i - self.op_sched.op_name_list[:i][::-1].index(op.name) - 1
             input_names = []

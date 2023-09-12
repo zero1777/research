@@ -9,7 +9,7 @@ import torch
 import warnings
 
 class C_node: # computation node 
-    def __init__(self, kcn, keep_kcn=False):
+    def __init__(self, kcn, alive_datas=set(), keep_kcn=False):
         self.name = kcn.name
         self.time = kcn.time
         self.overhead = kcn.overhead
@@ -23,6 +23,7 @@ class C_node: # computation node
         self.deps_fake = [kdn.name for kdn in kcn.deps_fake]
         self.deps_global = [kdn.name for kdn in kcn.deps_global]
         self.users_global = [kdn.name for kdn in kcn.users_global]
+        self.alive_datas = alive_datas
         # self.deps_global = kcn.deps_global
         # self.deps_fake = kcn.deps_fake
         # self.users_global = kcn.users_global
@@ -74,7 +75,7 @@ class D_node: # data node
         return check_attr(self, op2, ["name"])
 
     def __str__(self):
-        return f"Del {self.name}"
+        return f"D_node: Del {self.name}"
 
 
 class OpSchedule:

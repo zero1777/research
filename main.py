@@ -36,13 +36,19 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             users = {}
             op_list = []
+            alive_datas = set()
+
             for kdn in kg.list_kdn:
                 users[kdn.name] = len(kdn.users_real)
-
+                alive_datas.add(kdn.name)
+            
             for kcn in kg.list_kcn:
                 if "loss" in kcn.name:
-                    op_list.append(C_node(kcn))
-                op_list.append(C_node(kcn))
+                    op_list.append(C_node(kcn, alive_datas=alive_datas))
+                op_list.append(C_node(kcn, alive_datas=alive_datas))
+
+                # debug
+                # print(f'kcn: {kcn.name}, alive_datas: {alive_datas}')
 
                 for deps in kcn.deps_global:
                     if deps.name not in users:
@@ -50,6 +56,7 @@ class Asuta(torch.nn.Module):
                     if deps not in kcn.deps_fake:
                         users[deps.name] -= 1
                         if users[deps.name] == 0:
+                            alive_datas.remove(deps.name)
                             op_list.append(D_node(deps))
             
             # debug
@@ -95,6 +102,12 @@ class Asuta(torch.nn.Module):
         loss_idx = len(self.fwd_op_list)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
+
+        for l in self.fwd_fct_list:
+            print(f'fwd_fct: {l}')
+        print('\n')
+        for l in self.bwd_fct_list:
+            print(f'bwd_fct: {l}')
 
     def _exec(self, fct_list):
         for fct in fct_list:
@@ -151,19 +164,20 @@ class SimpleCNN(nn.Module):
 
 device = torch.device("cuda")
 
-model = SimpleCNN().to(device)
-sample = [torch.rand(1, 3, 32, 32).to(device)]
+# model = SimpleCNN().to(device)
+# sample = [torch.rand(1, 3, 32, 32).to(device)]
 
-# model = models.resnet18().to(device)
-# sample = torch.rand(5, 3, 224, 224).to(device)
+model = models.resnet18().to(device)
+sample = torch.rand(5, 3, 224, 224).to(device)
 # y = model(sample)
 
 # compare(Asuta(model, sample), model, sample)
 
 print("---  Doing rematerialization with Asuta ----")
 
+optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
-train_test(for_test, sample)
+train_test(for_test, sample, optimizer)
 # y = for_test(sample)
 
 print('---  Done rematerialization with Asuta ----')
