@@ -65,19 +65,22 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
-def train_test(mod, inputs, optimizer, repeat=10):
-    try:
-        _x = rkgb.make_inputs(mod.graph.model, inputs, None)
-        for _ in range(repeat):
-            # torch.random.manual_seed(0)
-            y = mod(**_x)
-            loss = y.mean()
-            loss.backward()
-            print(f'loss: {loss}')
-            mod.backward()
-            optimizer.step()
-    except Exception as e:
-        print(e)
+def train_test(mod, inputs, optimizer, repeat=1):
+    torch.cuda.reset_peak_memory_stats()
+    max_before = torch.cuda.max_memory_allocated()
+
+    _x = rkgb.make_inputs(mod.graph.model, inputs, None)
+    for _ in range(repeat):
+        # torch.random.manual_seed(0)
+        y = mod(**_x)
+        loss = y.mean()
+        loss.backward()
+        # print(f'loss: {loss}')
+        mod.backward()
+        # optimizer.step()
+
+    peak_mem = torch.cuda.max_memory_allocated() - max_before
+    print(f'peak_mem: {peak_mem}')
 
 def normal_model_train_test(model, sample):
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001)

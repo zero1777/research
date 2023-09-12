@@ -47,8 +47,9 @@ class Asuta(torch.nn.Module):
                     op_list.append(C_node(kcn, alive_datas=alive_datas))
                 op_list.append(C_node(kcn, alive_datas=alive_datas))
 
-                # debug
+                ''' # debug
                 # print(f'kcn: {kcn.name}, alive_datas: {alive_datas}')
+                ''' # debug
 
                 for deps in kcn.deps_global:
                     if deps.name not in users:
@@ -59,9 +60,10 @@ class Asuta(torch.nn.Module):
                             alive_datas.remove(deps.name)
                             op_list.append(D_node(deps))
             
-            # debug
+            ''' # debug
             # for op in op_list:
             #     print(f'op: {op}')
+            ''' # debug
         
             loss_idx = 0
             for i, op in enumerate(op_list):
@@ -76,12 +78,13 @@ class Asuta(torch.nn.Module):
         reverse_bwd_op_list = self.tmp_bwd_op_list[::-1]
         self.bwd_op_list = [op for bwlist in reverse_bwd_op_list for op in bwlist]
 
-        # debug
+        ''' # debug
         for op in self.fwd_op_list:
             print(f'fwd_op: {op}')
 
         for op in self.bwd_op_list:
             print(f'bwd_op: {op}')
+        ''' # debug
 
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -96,6 +99,14 @@ class Asuta(torch.nn.Module):
             list_kdn,
         )
 
+        self.data_memory = {}
+        for kdn in list_kdn:
+            self.data_memory[kdn.name] = kdn.mem
+        
+        ''' # debug
+        print(f'data_memory: {self.data_memory}')
+        ''' # debug
+
     def compile_function(self):
         self.compiler = Compiler(self.storage)
         self.fct_list = self.compiler.compile(self.op_sched)
@@ -103,11 +114,13 @@ class Asuta(torch.nn.Module):
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
+        ''' # debug
         for l in self.fwd_fct_list:
             print(f'fwd_fct: {l}')
         print('\n')
         for l in self.bwd_fct_list:
             print(f'bwd_fct: {l}')
+        ''' # debug
 
     def _exec(self, fct_list):
         for fct in fct_list:
@@ -177,7 +190,7 @@ print("---  Doing rematerialization with Asuta ----")
 
 optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
-train_test(for_test, sample, optimizer)
+# train_test(for_test, sample, optimizer)
 # y = for_test(sample)
 
 print('---  Done rematerialization with Asuta ----')
