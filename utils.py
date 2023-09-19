@@ -65,7 +65,7 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
-def train_test(mod, inputs, optimizer, repeat=1):
+def train_test(mod, inputs, optimizer, repeat=5):
     torch.cuda.reset_peak_memory_stats()
     max_before = torch.cuda.max_memory_allocated()
 

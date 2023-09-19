@@ -34,18 +34,20 @@ class Asuta(torch.nn.Module):
         self.bwd_op_list = []
 
         for kg in self.graph.graph_list:
-            users = {}
-            op_list = []
-            alive_datas = set()
+            users = {} # dict: name -> num of users
+            op_list = [] # list of C_node and D_node
+            alive_datas = set() # current alive datas
 
+            # initialze
             for kdn in kg.list_kdn:
                 users[kdn.name] = len(kdn.users_real)
-                alive_datas.add(kdn.name)
             
             for kcn in kg.list_kcn:
                 if "loss" in kcn.name:
                     op_list.append(C_node(kcn, alive_datas=alive_datas))
                 op_list.append(C_node(kcn, alive_datas=alive_datas))
+                for kdn in kcn.users:
+                    alive_datas.add(kdn.name)
 
                 ''' # debug
                 # print(f'kcn: {kcn.name}, alive_datas: {alive_datas}')
@@ -177,18 +179,16 @@ class SimpleCNN(nn.Module):
 
 device = torch.device("cuda")
 
-# model = SimpleCNN().to(device)
-# sample = [torch.rand(1, 3, 32, 32).to(device)]
+model = SimpleCNN().to(device)
+sample = [torch.rand(1, 3, 32, 32).to(device)]
 
-model = models.resnet18().to(device)
-sample = torch.rand(5, 3, 224, 224).to(device)
-# y = model(sample)
-
-# compare(Asuta(model, sample), model, sample)
+# model = models.resnet18().to(device)
+# sample = torch.rand(5, 3, 224, 224).to(device)
 
 print("---  Doing rematerialization with Asuta ----")
 
-optimizer = torch.optim.Adam(model.parameters())
+# compare(Asuta(model, sample), model, sample)
+# optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
 # train_test(for_test, sample, optimizer)
 # y = for_test(sample)
