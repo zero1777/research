@@ -23,10 +23,10 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__7_input data"]
+        self.recompute_list = ["__36_input2 data", "__40_input3 data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.construct_op_list()
-        self.add_evict_regenerate()
+        self.construct_op_list_v2()
         # self.compile_function()
 
         
@@ -37,6 +37,7 @@ class Asuta(torch.nn.Module):
         self.bwd_op_list = []
         self.kdn_users_counter = {} # dict: kdn.name -> num of users
         self.kdn_dict = {} # dict: kdn.name -> kdn
+        self.kcn_dict = {} # dict: kcn.name -> kcn
 
         for kg in self.graph.graph_list:
             users = {} # dict: name -> num of users
@@ -49,9 +50,12 @@ class Asuta(torch.nn.Module):
                 self.kdn_dict[kdn.name] = kdn
                 self.kdn_users_counter[kdn.name] = len(kdn.users_global)
                 users[kdn.name] = len(kdn.users_real)
+                # print(f'users: {users}')
+                # print(f'kdn: {kdn.name}, {[n.name for n in kdn.users_real]}')
                 # print(f'kdn: {kdn.name}, {[c.name for c in kdn.users_global]}')
             
             for kcn in kg.list_kcn:
+                self.kcn_dict[kcn.name] = kcn
                 op_list.append(C_node(kcn, alive_datas=alive_datas))
                 # "loss" op needs to be executed in both forward and backward, so we need to add it twice
                 if "loss" in kcn.name:
@@ -121,13 +125,25 @@ class Asuta(torch.nn.Module):
         ''' # debug
         print(f'data_memory: {self.data_memory}')
         ''' # debug
-
-    def add_evict_regenerate(self):
-        users = self.kdn_users_counter.copy()
+        
+    def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
-        evict_list = []
+        evict_list = {} # dict: kdn.name -> kcn
+        users = {} # dict: name -> num of users
 
         self.fwd_op_list_v2 = []
+        self.bwd_op_list_v2 = []
+        
+        # build kdn user counts (only for forward)
+        for kg in self.graph.graph_list:
+            for kdn in kg.list_kdn:
+                cnt = 0
+                for i in kdn.users_global:
+                    if "fwd" in i.name: 
+                        cnt += 1 
+                users[kdn.name] = cnt
+
+        # print(f'users: {users}')
 
         # forward list
         for op in self.fwd_op_list:
@@ -139,15 +155,16 @@ class Asuta(torch.nn.Module):
                     if deps_name not in users:
                         assert deps_name == "sources data"
                         continue
-                    if deps_name in evict_list:
-                        print(f'op: {op.name}, deps_name: {deps_name}')
 
                     users[deps_name] -= 1
 
                     if deps_name in self.recompute_list:
                         assert "grad" not in deps_name
-                        if users[deps_name] == 1:
-                            evict_list.append(deps_name)
+                        if users[deps_name] == 0:
+                            assert len(self.kdn_dict[deps_name].deps) == 1
+                            parent_op = [n for n in self.kdn_dict[deps_name].deps]
+                            # print(f'op {op.name} {deps_name} {users[deps_name]}')
+                            evict_list[deps_name] = parent_op[0]
                             self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
@@ -155,42 +172,41 @@ class Asuta(torch.nn.Module):
             elif isinstance(op, D_node):
                 alive_datas.remove(op.name)
         
-        # for a in self.fwd_op_list_v2:
-            # print(f'{a}')
-            
-        # def reconstruct_kdn(kdn_name):
-        #     parent_kcn = recompute_tensors[kdn_name]
-        #     for deps in parent_kcn.deps_global:
-        #         if deps.name in alive_datas:
-        #             continue
-        #         if deps.name not in users:
-        #             continue
-        #         assert deps.name in recompute_tensors
-        #         reconstruct_kdn(deps.name)
+        print(f'fwd_op_list_v2: ')
+        for a in self.fwd_op_list_v2:
+            print(f'{a}')
 
-        #     op_list.append(C_node(parent_kcn, alive_datas=alive_datas))
-        #     for kdn in parent_kcn.users:
-        #         alive_datas.add(kdn.name)
-            
-        # if kdn is not used anymore in forward and in swap list, then we can delete it first
-        # for kdn in kg.list_kdn:
-        #     if kdn.name not in self.recompute_list:
-        #         continue
-        #     if users[kdn.name] == 1:
-        #         assert len(kdn.deps_global) == 1
-        #         recompute_tensors[kdn.name] = list(kdn.deps_global)[0]
-        #         alive_datas.remove(kdn.name)
-        #         op_list.append(D_node(kdn))
-        #         print(f'R_test: {kdn.name}, {[k.name for k in kdn.deps_global]}')
-    
-                # if "bwd" in kcn.name:
-        #     for deps in kcn.deps_global:
-        #         if deps.name in alive_datas:
-        #             continue
-        #         print(f'deps name: {deps.name}')
-        #         assert deps.name in recompute_tensors
-        #         reconstruct_kdn(deps.name)
-        #         del(recompute_tensors[deps.name])
+        # print(f'evict_list: {evict_list}')
+
+        def regen_tensor(kdn_name):
+            parent_op = evict_list[kdn_name]
+            for deps in parent_op.deps_global:
+                if deps.name in evict_list:
+                    regen_tensor(deps.name)
+            c_node = C_node(parent_op, alive_datas=alive_datas.copy())
+            self.bwd_op_list_v2.append(c_node)
+            del evict_list[kdn_name]
+
+        # backward list
+        for op in self.bwd_op_list:
+            if isinstance(op, C_node):
+                op.alive_datas = alive_datas.copy()
+                if "loss" in op.name:
+                    self.bwd_op_list_v2.append(op) 
+                    continue
+                for deps_name in op.deps_global:
+                    if deps_name not in op.deps_fake and deps_name in evict_list:
+                        print(f'op: {op.name}, deps_name: {deps_name}, parent: {evict_list[deps_name].name}')
+                        regen_tensor(deps_name)
+                
+            elif isinstance(op, D_node):
+                alive_datas.remove(op.name)
+
+            self.bwd_op_list_v2.append(op)
+
+        print(f'bwd_op_list_v2: ')
+        for a in self.bwd_op_list_v2:
+            print(f'{a}')                
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)

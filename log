@@ -391,3 +391,77 @@ bwd_fct: [<function fct_del_tensor_grad.<locals>.fct at 0x147bf0616fc0>]
 
 
 
+
+
+fwd_op: C_node: Run fwd___10_input
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___7_input
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___16_input0
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___23_input
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___28_input0
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___30_x
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___39_fv
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___36_input2
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___43_fv
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___40_input3
+fwd_op: C_node: Run fwd_loss
+fwd_op: C_node: Run fwd___46_fv
+fwd_op: C_node: Run fwd_loss
+
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __46_fv data
+bwd_op: C_node: Run bwd___46_fv
+bwd_op: D_node: Del __46_fv phantoms
+bwd_op: D_node: Del __46_fv grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: C_node: Run bwd___40_input3
+bwd_op: D_node: Del __40_input3 data
+bwd_op: D_node: Del __40_input3 grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __43_fv data
+bwd_op: C_node: Run bwd___43_fv
+bwd_op: D_node: Del __43_fv phantoms
+bwd_op: D_node: Del __43_fv grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: C_node: Run bwd___36_input2
+bwd_op: D_node: Del __36_input2 data
+bwd_op: D_node: Del __36_input2 grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __39_fv data
+bwd_op: C_node: Run bwd___39_fv
+bwd_op: D_node: Del __39_fv phantoms
+bwd_op: D_node: Del __39_fv grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __30_x data
+bwd_op: C_node: Run bwd___30_x
+bwd_op: D_node: Del __30_x phantoms
+bwd_op: D_node: Del __30_x grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: C_node: Run bwd___28_input0
+bwd_op: D_node: Del __28_input0 data
+bwd_op: D_node: Del __28_input0 grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __23_input data
+bwd_op: C_node: Run bwd___23_input
+bwd_op: D_node: Del __23_input grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __16_input0 data
+bwd_op: C_node: Run bwd___16_input0
+bwd_op: D_node: Del __16_input0 phantoms
+bwd_op: D_node: Del __16_input0 grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: C_node: Run bwd___7_input
+bwd_op: D_node: Del __7_input data
+bwd_op: D_node: Del __7_input grad
+bwd_op: C_node: Run fwd_loss
+bwd_op: D_node: Del __10_input data
+bwd_op: C_node: Run bwd___10_input
+bwd_op: D_node: Del __10_input grad
