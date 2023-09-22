@@ -23,7 +23,7 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__36_input2 data", "__40_input3 data"]
+        self.recompute_list = ["__43_fv data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.construct_op_list()
         self.construct_op_list_v2()
@@ -172,10 +172,11 @@ class Asuta(torch.nn.Module):
             elif isinstance(op, D_node):
                 alive_datas.remove(op.name)
         
-        print(f'fwd_op_list_v2: ')
-        for a in self.fwd_op_list_v2:
-            print(f'{a}')
+        # print(f'fwd_op_list_v2: ')
+        # for a in self.fwd_op_list_v2:
+        #     print(f'{a}')
 
+        # print(f'alive_datas: {alive_datas}')
         # print(f'evict_list: {evict_list}')
 
         def regen_tensor(kdn_name):
@@ -201,12 +202,15 @@ class Asuta(torch.nn.Module):
                 
             elif isinstance(op, D_node):
                 alive_datas.remove(op.name)
+                if op.name in evict_list:
+                    print(f'kdn already in evict {op.name}')
+                    continue
 
             self.bwd_op_list_v2.append(op)
 
-        print(f'bwd_op_list_v2: ')
-        for a in self.bwd_op_list_v2:
-            print(f'{a}')                
+        # print(f'bwd_op_list_v2: ')
+        # for a in self.bwd_op_list_v2:
+        #     print(f'{a}')                
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)
