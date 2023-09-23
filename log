@@ -465,3 +465,8 @@ bwd_op: C_node: Run fwd_loss
 bwd_op: D_node: Del __10_input data
 bwd_op: C_node: Run bwd___10_input
 bwd_op: D_node: Del __10_input grad
+
+
+fwd Run fwd___80_input, [<function fct_run_forward_no_grad.<locals>.fct at 0x14fa6db80900>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa6db80860>, <function fct_run_detach.<locals>.fct at 0x14fa6db807c0>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa6db809a0>, <function fct_get_shapes.<locals>.fct at 0x14fa6db80a40>, <function fct_get_shapes.<locals>.fct at 0x14fa6db80ae0>]
+
+fwd Run fwd___80_input, [<function fct_run_forward_with_grad.<locals>.fct at 0x14fa600a4180>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa600a4220>, <function fct_run_detach.<locals>.fct at 0x14fa600a42c0>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa600a4360>]

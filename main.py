@@ -23,11 +23,11 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__43_fv data"]
+        self.recompute_list = ["__7_input data", "__10_input data", "__16_input0 data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.construct_op_list()
         self.construct_op_list_v2()
-        # self.compile_function()
+        self.compile_function()
 
         
     def construct_op_list(self):
@@ -97,13 +97,13 @@ class Asuta(torch.nn.Module):
         reverse_bwd_op_list = self.tmp_bwd_op_list[::-1]
         self.bwd_op_list = [op for bwlist in reverse_bwd_op_list for op in bwlist]
 
-        ''' # debug
-        for op in self.fwd_op_list:
-            print(f'fwd_op: {op}')
+        # debug
+        # for op in self.fwd_op_list:
+        #     print(f'fwd_op: {op}')
 
-        for op in self.bwd_op_list:
-            print(f'bwd_op: {op}')
-        ''' # debug
+        # for op in self.bwd_op_list:
+        #     print(f'bwd_op: {op}')
+        # debug
 
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -125,6 +125,10 @@ class Asuta(torch.nn.Module):
         ''' # debug
         print(f'data_memory: {self.data_memory}')
         ''' # debug
+
+        # for kg in self.graph.graph_list:
+        #     for kdn in kg.list_kdn:
+        #         print(f'kdn: {kdn.name}, info: {kdn.info}')
         
     def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
@@ -172,9 +176,10 @@ class Asuta(torch.nn.Module):
             elif isinstance(op, D_node):
                 alive_datas.remove(op.name)
         
-        # print(f'fwd_op_list_v2: ')
-        # for a in self.fwd_op_list_v2:
-        #     print(f'{a}')
+        print(f'fwd_op_list_v2: ')
+        for idx, a in enumerate(self.fwd_op_list_v2):
+            print(f'{idx}: {a}')
+        
 
         # print(f'alive_datas: {alive_datas}')
         # print(f'evict_list: {evict_list}')
@@ -195,9 +200,17 @@ class Asuta(torch.nn.Module):
                 if "loss" in op.name:
                     self.bwd_op_list_v2.append(op) 
                     continue
+
+                for user_name in op.users_global:
+                    assert "grad" in user_name
+                    data_name = user_name.replace("grad", "data")
+                    if data_name in evict_list:
+                        print(f'need grad: {op.name}, {data_name}')
+                        regen_tensor(data_name)
+            
                 for deps_name in op.deps_global:
                     if deps_name not in op.deps_fake and deps_name in evict_list:
-                        print(f'op: {op.name}, deps_name: {deps_name}, parent: {evict_list[deps_name].name}')
+                        print(f'need op: {op.name}, deps_name: {deps_name}, parent: {evict_list[deps_name].name}')
                         regen_tensor(deps_name)
                 
             elif isinstance(op, D_node):
@@ -208,14 +221,27 @@ class Asuta(torch.nn.Module):
 
             self.bwd_op_list_v2.append(op)
 
-        # print(f'bwd_op_list_v2: ')
-        # for a in self.bwd_op_list_v2:
-        #     print(f'{a}')                
+        print(f'bwd_op_list_v2: ')
+        for idx, a in enumerate(self.bwd_op_list_v2):
+            print(f'{idx}: {a}')
+            
+        list_kdn = []
+        for kg in self.graph.graph_list:
+            list_kdn += kg.list_kdn
+        
+        self.op_sched_v2 = OpSchedule(
+            self.fwd_op_list_v2 + self.bwd_op_list_v2,
+            None,
+            self.graph.graph_list[0].input_kdn_data,
+            self.graph.graph_list[0].input_kdn_grad,
+            self.graph.output,
+            list_kdn,
+        )
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)
-        self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
-        loss_idx = len(self.fwd_op_list)
+        self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
@@ -239,7 +265,7 @@ class Asuta(torch.nn.Module):
         # set input data
         model_inputs = make_inputs(self.graph.model, args, kwargs)
         for k, v in model_inputs.items():
-            print(f'k: {k}, v: {v}')
+            # print(f'k: {k}, v: {v}')
             self.storage.add_val(k, v)
         
         # execute init code
@@ -295,9 +321,9 @@ sample = [torch.rand(1, 3, 32, 32).to(device)]
 print("---  Doing rematerialization with Asuta ----")
 
 # compare(Asuta(model, sample), model, sample)
-# optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
-# train_test(for_test, sample, optimizer)
+train_test(for_test, sample, optimizer)
 # y = for_test(sample)
 
 print('---  Done rematerialization with Asuta ----')
