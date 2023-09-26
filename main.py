@@ -24,6 +24,7 @@ class Asuta(torch.nn.Module):
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.recompute_list = ["__7_input data", "__10_input data", "__16_input0 data"]
+        # self.recompute_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.construct_op_list()
         self.construct_op_list_v2()

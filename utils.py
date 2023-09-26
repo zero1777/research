@@ -66,8 +66,15 @@ def compare(model1, model2, inputs, dict_kwargs=None):
         print(f'---  Same gradient ----')
  
 def train_test(mod, inputs, optimizer, repeat=10):
+
+    device = get_device()
+    stream = torch.cuda.current_stream(device)
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+
     torch.cuda.reset_peak_memory_stats()
     max_before = torch.cuda.max_memory_allocated()
+    start_event.record(stream)
 
     _x = rkgb.make_inputs(mod.graph.model, inputs, None)
     for _ in range(repeat):
@@ -77,10 +84,15 @@ def train_test(mod, inputs, optimizer, repeat=10):
         loss.backward()
         # print(f'loss: {loss}')
         mod.backward()
-        # optimizer.step()
-
+        optimizer.step()
     peak_mem = torch.cuda.max_memory_allocated() - max_before
-    print(f'peak_mem: {peak_mem/1024**3}')
+
+    end_event.record(stream)
+    torch.cuda.synchronize(device)
+    training_time = start_event.elapsed_time(end_event)
+
+    print(f'training_time (sec): {training_time/1000}')
+    print(f'peak_mem (GB): {peak_mem/1024**3}')
 
 
 def normal_model_train_test(model, sample):
