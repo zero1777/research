@@ -45,6 +45,8 @@ def fct_get_unpack(storage):
 
 def fct_get_shapes(storage, tensor_name):
     def fct():
+        if tensor_name == "___16_input0":
+            print(f'tensor123 __16_input0: {storage.ld["___16_input0"].grad_fn}')
         storage.shapes[tensor_name] = storage.ld[tensor_name].shape
         storage.dtypes[tensor_name] = storage.ld[tensor_name].dtype
 
@@ -75,10 +77,11 @@ def fct_run_forward_no_grad(storage, code):
 
 def fct_run_forward_with_grad(storage, code, no_save_list=[]):
     def fct():
-        with torch.autograd.graph.saved_tensors_hooks(
-            fct_get_pack(storage, no_save_list), fct_get_unpack(storage)
-        ):
-            exec(code, storage.gd, storage.ld)
+        # with torch.autograd.graph.saved_tensors_hooks(
+        #     fct_get_pack(storage, no_save_list), fct_get_unpack(storage)
+        # ):
+        #     exec(code, storage.gd, storage.ld)
+        exec(code, storage.gd, storage.ld)
 
     return fct
 
@@ -96,6 +99,7 @@ def fct_run_inplace(storage, tensor_name, inplace_code):
 def fct_run_detach(storage, tensor_name):
     def fct():
         storage.ld[tensor_name].data = storage.ld[f"_{tensor_name}"].data
+        # print(f'detach {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
 
     return fct
 
@@ -116,6 +120,7 @@ def fct_requires_grad(storage, tensor_name):
 
 def fct_run_backward(storage, tensor_name, retain_graph):
     def fct():
+        # print(f'backward {tensor_name}: {storage.ld[f"{tensor_name}"]}')
         storage.ld[f"_{tensor_name}"].backward(
             storage.ld[tensor_name].grad, retain_graph=retain_graph
         )
@@ -147,6 +152,7 @@ def fct_generate_fake_data(storage, tensor_name):
         )
         x = m.expand(np.prod(storage.shapes[tensor_name]))
         storage.ld[tensor_name].data = x.view(storage.shapes[tensor_name])
+        # print(f'generate fake data: {tensor_name}: {storage.ld[tensor_name]}')
 
     return fct
 
@@ -156,6 +162,7 @@ def fct_del_tensor_data(storage, tensor_name):
         storage.ld[tensor_name].data = torch.empty(
             0, device=storage.gd["device"]
         )
+        # print(f'del tensor {tensor_name}: {storage.ld[tensor_name]}')
 
     return fct
 
@@ -180,6 +187,38 @@ def fct_del_var(storage, var_name):
     def fct():
         storage.ld[var_name] = None
 
+    return fct
+
+def fct_swapin(storage, tensor_name, swap_stream):
+    # @torch.no_grad() 
+    def fct():
+        with torch.cuda.stream(swap_stream):
+            storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=False)
+            # storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
+        torch.cuda.synchronize()
+        print(f'swap in tensor {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
+
+    return fct
+
+def fct_swapout(storage, tensor_name, swap_stream):
+    def fct():
+        print(f'swap out tensor1 {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
+        # print(f'swap out tensor {tensor_name} data 1: {storage.ld[tensor_name].data}')
+        # print(f'swap out tensor {tensor_name} grad 1: {storage.ld[tensor_name].grad}')
+        with torch.cuda.stream(swap_stream):
+            # a = torch.empty(storage.ld[tensor_name].size(), device="cpu")
+            # a.copy_(storage.ld[tensor_name], non_blocking=False)
+            # a = a.detach().requires_grad_(True)
+            # storage.cpu_ld[tensor_name] = storage.ld[tensor_name]
+            storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu")
+            storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
+            storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
+        torch.cuda.synchronize()
+        # print(f'swap out tensor {tensor_name} data 2: {storage.ld[tensor_name].data}')
+        # print(f'swap out tensor {tensor_name} grad 2: {storage.ld[tensor_name].grad}')
+        # print(f'swap out tensor {tensor_name} data 3: {storage.cpu_ld[tensor_name].data}')
+        # print(f'swap out tensor {tensor_name} grad 3: {storage.cpu_ld[tensor_name].grad}')
+            
     return fct
 
     # endregion
@@ -216,6 +255,7 @@ class Storage:
         self.shapes = dict()
         self.dtypes = dict()
         self.rng_state = RngState() # rng (random number generator), used for producing same random numbers
+        self.cpu_ld = {}
         # print(f'RK_Storage: gd: {self.gd}')
 
     def add_val(self, val, x):
@@ -242,6 +282,7 @@ class Compiler:
         self.storage = storage
         self.shapes = storage.shapes
         self.device = self.storage.gd["device"]
+        self.swap_stream = torch.cuda.Stream()
 
     def _is_alive(self, op, kdn_name):
         if kdn_name in self.op_sched.kdn_names:
@@ -305,6 +346,8 @@ class Compiler:
         )
         main_code = main_code.replace(op.main_target, f"_{op.main_target}")
 
+        # last_before_bwd = True
+
         if not last_before_bwd:
 
             # inplace_code = inplace_code.replace(
@@ -325,6 +368,8 @@ class Compiler:
             for kdn_name in candidates:
                 if kdn_name in self.op_sched.op_name_list[i:next_bwd_idx]:
                     no_save_list.append(kdn_name.split(" ")[0])
+                
+            # print(f'{op.name}, no_save_list: {no_save_list}')
 
             for target in op.tensor_targets:
                 inplace_code = inplace_code.replace(target, "_" + target)
@@ -347,17 +392,20 @@ class Compiler:
                 self.storage, body_code.replace("self", "original_mod")
             )
         )
+        # print(f'main_code: {main_code}')
 
         # get the shape of tensors
         if not rec:
             l.append(fct_get_shapes(self.storage, f"_{op.main_target}"))
             for target in op.tensor_targets:
                 l.append(fct_get_shapes(self.storage, target))
+        
         return l
 
     def get_bwd(self, op, i):
         rec = op.name in self.op_sched.op_name_list[:i]
         last = not (op.name in self.op_sched.op_name_list[i + 1 :])
+
         l = []
         l2 = []
 
@@ -372,11 +420,13 @@ class Compiler:
             for kdn_name in op.deps_fake
             if not self._is_alive(op, kdn_name)
         ]
+        # print(f'temp1: {op.main_target}: {temporary_tensor_names}')
         if op.main_target in temporary_tensor_names:
             temporary_tensor_names.append(f"_{op.main_target}")
         for tensor_name in temporary_tensor_names:
             l.append(fct_generate_fake_data(self.storage, tensor_name))
             l2.append(fct_del_tensor_data(self.storage, tensor_name))
+        # print(f'temp2: {op.main_target}: {temporary_tensor_names}')
 
         if rec:
             prev_i = i - self.op_sched.op_name_list[:i][::-1].index(op.name) - 1
@@ -384,6 +434,7 @@ class Compiler:
             for kdn_name in op.users_global:
                 if f"del {kdn_name}" in self.op_sched.op_name_list[prev_i:i]:
                     input_names.append(kdn_name.split(" ")[0])
+            print("reccccccccc")
             l.append(
                 fct_run_backward_with_inputs(
                     self.storage,
@@ -398,6 +449,8 @@ class Compiler:
                     self.storage, op.main_target, retain_graph=(not last)
                 )
             )
+
+        # print(f'op.name: {op.name}, {l + l2}')
 
         return l + l2
 
@@ -419,19 +472,57 @@ class Compiler:
     def get_del_grad(self, op, i):
         return [fct_del_tensor_grad(self.storage, op.main_target)]
 
+    def get_del_data_swapin(self, op, i):
+        return [fct_swapin(self.storage, op.main_target, self.swap_stream)]
+
+    def get_del_data_swapout(self, op, i):
+        # return [fct_swapout(self.storage, op.main_target, self.swap_stream)]
+        l = []
+        # print(f'op: {op.main_target}')
+        l.append(fct_swapout(self.storage, op.main_target, self.swap_stream))
+        l.append(fct_del_tensor_data(self.storage, op.main_target))
+        # l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
+        # if op.info is not None and op.info.requires_grad:
+        #     l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
+        # if op.includes_base:
+        #     l.append(fct_del_tensor_base(self.storage, op.main_target))
+        # for v in op.tensor_targets:
+        #     l.append(fct_del_tensor_data(self.storage, v))
+        # for v in op.container_targets:
+        #     l.append(fct_del_var(self.storage, v))
+        
+        # print(f'DDDDD: {l}')
+        # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
+
+
+        return l
+
     def compile(self, op_sched):
         self.op_sched = op_sched
 
         fct_list = []
         for i, op in enumerate(op_sched.op_list):
             # print(f'op.name: {op.name}')
+            # if "swapin" in op.name:
+            #     fct_list.append(self.get_del_data_swapin(op, i))
+            # elif "swapout" in op.name:
+            #     fct_list.append(self.get_del_data_swapout(op, i))
             if "fwd" in op.name:
-                fct_list.append(self.get_fwd(op, i))
+                if op.is_swap:
+                    fct_list.append(self.get_del_data_swapin(op, i))
+                else:
+                    fct_list.append(self.get_fwd(op, i))
             elif "bwd" in op.name:
                 fct_list.append(self.get_bwd(op, i))
             elif "data" in op.name:
-                fct_list.append(self.get_del_data(op, i))
+                if op.is_swap:
+                    print(f'op.name: {op.name}')
+                    fct_list.append(self.get_del_data_swapout(op, i))
+                else:
+                    fct_list.append(self.get_del_data(op, i))
+                # fct_list.append([])
             elif "grad" in op.name:
+                # fct_list.append([])
                 fct_list.append(self.get_del_grad(op, i))
             else:
                 fct_list.append([])

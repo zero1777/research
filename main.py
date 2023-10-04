@@ -23,9 +23,10 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__7_input data", "__10_input data", "__16_input0 data"]
+        self.recompute_list = ["__16_input0 data", "__36_input2 data"]
         # self.recompute_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
+        # self.swap_stream = torch.cuda.Stream()
         self.construct_op_list()
         self.construct_op_list_v2()
         self.compile_function()
@@ -170,7 +171,11 @@ class Asuta(torch.nn.Module):
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
                             # print(f'op {op.name} {deps_name} {users[deps_name]}')
                             evict_list[deps_name] = parent_op[0]
-                            self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
+                            dnode = D_node(self.kdn_dict[deps_name])
+                            dnode.name = dnode.name + "_swapout"
+                            dnode.is_swap = True
+                            self.fwd_op_list_v2.append(dnode)
+                            # self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
 
@@ -190,7 +195,9 @@ class Asuta(torch.nn.Module):
             for deps in parent_op.deps_global:
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
+            parent_op.name = parent_op.name + "_swapin"
             c_node = C_node(parent_op, alive_datas=alive_datas.copy())
+            c_node.is_swap = True
             self.bwd_op_list_v2.append(c_node)
             del evict_list[kdn_name]
 
@@ -254,6 +261,9 @@ class Asuta(torch.nn.Module):
             print(f'bwd_fct: {l}')
         ''' # debug
 
+        # for i, l in enumerate(self.bwd_fct_list):
+        #     print(f'bwd_fct {i}: {l}')
+
     def _exec(self, fct_list):
         for fct in fct_list:
             fct()
@@ -274,22 +284,35 @@ class Asuta(torch.nn.Module):
 
         for kg in self.graph.graph_list:
             for kdn in kg.list_kdn:
+                print(f'kdn: {kdn.name}, info: {kdn.main_target}')
                 tensor_val = torch.empty(
                     0, device=self.device,
                     requires_grad=kdn.info.requires_grad
                 )
                 self.storage.ld[kdn.main_target] = tensor_val
-        
+
         # execute the generated function list (forward)
+        # for i, l in enumerate(self.fwd_fct_list):
+        #     print(f'forward: {i}')
+        #     self._exec(l)
+        #     if i >= 4:
+        #         print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
+                
         for l in self.fwd_fct_list:
             self._exec(l)
 
+        
         return self.storage.get_val(self.graph.output.main_target)
+    
     
     def backward(self):
         # execute the generated function list (backward)
-        for l in self.bwd_fct_list:
+        for i, l in enumerate(self.bwd_fct_list):
+            # print(f'backward: {i}')
+            # print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
             self._exec(l)
+        # for l in self.bwd_fct_list:
+            # self._exec(l)
 
 class SimpleCNN(nn.Module):
     def __init__(self):
@@ -325,6 +348,6 @@ print("---  Doing rematerialization with Asuta ----")
 optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
 train_test(for_test, sample, optimizer)
-# y = for_test(sample)
+# y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')

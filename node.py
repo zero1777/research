@@ -40,12 +40,13 @@ class C_node: # computation node
                 continue
             self.proxy = kdn.info.requires_grad
         self.is_rand = kcn.is_rand
+        self.is_swap = False
 
     def __eq__(self, op2):
         return check_attr(self, op2, ["name"])
 
     def __str__(self):
-        return f"C_node: Run {self.name}"
+        return f"C_node: Run {self.name} {self.main_target}"
 
 
 class D_node: # data node
@@ -69,13 +70,14 @@ class D_node: # data node
         self.proxy = proxy
         self.includes_phantoms = kdn.includes_phantoms
         self.includes_base = kdn.includes_base
+        self.is_swap = False
         # self.alias_in_users_phantoms = kdn.alias_in_users_phantoms
 
     def __eq__(self, op2):
         return check_attr(self, op2, ["name"])
 
     def __str__(self):
-        return f"D_node: Del {self.name}"
+        return f"D_node: Del {self.name} {self.main_target}"
 
 
 class OpSchedule:

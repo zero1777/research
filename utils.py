@@ -65,7 +65,7 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
-def train_test(mod, inputs, optimizer, repeat=10):
+def train_test(mod, inputs, optimizer, repeat=1):
 
     device = get_device()
     stream = torch.cuda.current_stream(device)
