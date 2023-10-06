@@ -172,7 +172,7 @@ class Asuta(torch.nn.Module):
                             # print(f'op {op.name} {deps_name} {users[deps_name]}')
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_node(self.kdn_dict[deps_name])
-                            dnode.name = dnode.name + "_swapout"
+                            # dnode.name = dnode.name + "_swapout"
                             dnode.is_swap = True
                             self.fwd_op_list_v2.append(dnode)
                             # self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
@@ -195,7 +195,7 @@ class Asuta(torch.nn.Module):
             for deps in parent_op.deps_global:
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
-            parent_op.name = parent_op.name + "_swapin"
+            # parent_op.name = parent_op.name + "_swapin"
             c_node = C_node(parent_op, alive_datas=alive_datas.copy())
             c_node.is_swap = True
             self.bwd_op_list_v2.append(c_node)

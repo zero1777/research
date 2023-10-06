@@ -193,7 +193,7 @@ def fct_swapin(storage, tensor_name, swap_stream):
     # @torch.no_grad() 
     def fct():
         with torch.cuda.stream(swap_stream):
-            storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=False)
+            storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=True)
             # storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
         torch.cuda.synchronize()
         print(f'swap in tensor {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
@@ -211,7 +211,7 @@ def fct_swapout(storage, tensor_name, swap_stream):
             # a = a.detach().requires_grad_(True)
             # storage.cpu_ld[tensor_name] = storage.ld[tensor_name]
             storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu")
-            storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
+            storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=True)
             storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
         torch.cuda.synchronize()
         # print(f'swap out tensor {tensor_name} data 2: {storage.ld[tensor_name].data}')
@@ -346,7 +346,7 @@ class Compiler:
         )
         main_code = main_code.replace(op.main_target, f"_{op.main_target}")
 
-        # last_before_bwd = True
+        last_before_bwd = True
 
         if not last_before_bwd:
 
@@ -434,7 +434,6 @@ class Compiler:
             for kdn_name in op.users_global:
                 if f"del {kdn_name}" in self.op_sched.op_name_list[prev_i:i]:
                     input_names.append(kdn_name.split(" ")[0])
-            print("reccccccccc")
             l.append(
                 fct_run_backward_with_inputs(
                     self.storage,
