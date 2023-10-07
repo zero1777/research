@@ -23,7 +23,7 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__16_input0 data", "__36_input2 data"]
+        self.recompute_list = ["__13_input data", "__25_input data"]
         # self.recompute_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         # self.swap_stream = torch.cuda.Stream()
@@ -120,13 +120,17 @@ class Asuta(torch.nn.Module):
             list_kdn,
         )
 
+        self.total_memory = 0
         self.data_memory = {}
         for kdn in list_kdn:
             self.data_memory[kdn.name] = kdn.mem
+            if "data" in kdn.name:
+                self.total_memory += kdn.mem
         
-        ''' # debug
-        print(f'data_memory: {self.data_memory}')
-        ''' # debug
+        # debug
+        # print(f'data_memory: {self.data_memory}')
+        # print(f'total_memory: {self.total_memory}')
+        # debug
 
         # for kg in self.graph.graph_list:
         #     for kdn in kg.list_kdn:
@@ -173,7 +177,7 @@ class Asuta(torch.nn.Module):
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_node(self.kdn_dict[deps_name])
                             # dnode.name = dnode.name + "_swapout"
-                            dnode.is_swap = True
+                            # dnode.is_swap = True
                             self.fwd_op_list_v2.append(dnode)
                             # self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
                 for kdn_name in op.users_global:
@@ -197,7 +201,7 @@ class Asuta(torch.nn.Module):
                     regen_tensor(deps.name)
             # parent_op.name = parent_op.name + "_swapin"
             c_node = C_node(parent_op, alive_datas=alive_datas.copy())
-            c_node.is_swap = True
+            # c_node.is_swap = True
             self.bwd_op_list_v2.append(c_node)
             del evict_list[kdn_name]
 
@@ -220,6 +224,9 @@ class Asuta(torch.nn.Module):
                     if deps_name not in op.deps_fake and deps_name in evict_list:
                         print(f'need op: {op.name}, deps_name: {deps_name}, parent: {evict_list[deps_name].name}')
                         regen_tensor(deps_name)
+
+                for kdn_name in op.users_global:
+                    alive_datas.add(kdn_name)
                 
             elif isinstance(op, D_node):
                 alive_datas.remove(op.name)
@@ -248,6 +255,8 @@ class Asuta(torch.nn.Module):
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)
+        # self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        # loss_idx = len(self.fwd_op_list)
         self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
         loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
@@ -284,7 +293,7 @@ class Asuta(torch.nn.Module):
 
         for kg in self.graph.graph_list:
             for kdn in kg.list_kdn:
-                print(f'kdn: {kdn.name}, info: {kdn.main_target}')
+                # print(f'kdn: {kdn.name}, info: {kdn.main_target}')
                 tensor_val = torch.empty(
                     0, device=self.device,
                     requires_grad=kdn.info.requires_grad
@@ -339,8 +348,8 @@ device = torch.device("cuda")
 model = SimpleCNN().to(device)
 sample = [torch.rand(1, 3, 32, 32).to(device)]
 
-# model = models.resnet50().to(device)
-# sample = [torch.rand(5, 3, 224, 224).to(device)]
+model = models.resnet50().to(device)
+sample = [torch.rand(5, 3, 224, 224).to(device)]
 
 print("---  Doing rematerialization with Asuta ----")
 
