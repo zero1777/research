@@ -45,8 +45,6 @@ def fct_get_unpack(storage):
 
 def fct_get_shapes(storage, tensor_name):
     def fct():
-        if tensor_name == "___16_input0":
-            print(f'tensor123 __16_input0: {storage.ld["___16_input0"].grad_fn}')
         storage.shapes[tensor_name] = storage.ld[tensor_name].shape
         storage.dtypes[tensor_name] = storage.ld[tensor_name].dtype
 
@@ -194,15 +192,16 @@ def fct_swapin(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
             storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=True)
+            storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
             # storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
         torch.cuda.synchronize()
-        print(f'swap in tensor {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
+        # print(f'swap in tensor {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
 
     return fct
 
 def fct_swapout(storage, tensor_name, swap_stream):
     def fct():
-        print(f'swap out tensor1 {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
+        # print(f'swap out tensor1 {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
         # print(f'swap out tensor {tensor_name} data 1: {storage.ld[tensor_name].data}')
         # print(f'swap out tensor {tensor_name} grad 1: {storage.ld[tensor_name].grad}')
         with torch.cuda.stream(swap_stream):
@@ -462,6 +461,7 @@ class Compiler:
             l.append(fct_del_tensor_base(self.storage, op.main_target))
         for v in op.tensor_targets:
             l.append(fct_del_tensor_data(self.storage, v))
+            print(f'op.name: {op.name}, {v}')
         for v in op.container_targets:
             l.append(fct_del_var(self.storage, v))
         # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
@@ -480,7 +480,7 @@ class Compiler:
         # print(f'op: {op.main_target}')
         l.append(fct_swapout(self.storage, op.main_target, self.swap_stream))
         l.append(fct_del_tensor_data(self.storage, op.main_target))
-        # l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
+        l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
         # if op.info is not None and op.info.requires_grad:
         #     l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
         # if op.includes_base:
@@ -490,7 +490,7 @@ class Compiler:
         # for v in op.container_targets:
         #     l.append(fct_del_var(self.storage, v))
         
-        # print(f'DDDDD: {l}')
+        print("swapout")
         # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
 
 
@@ -515,7 +515,7 @@ class Compiler:
                 fct_list.append(self.get_bwd(op, i))
             elif "data" in op.name:
                 if op.is_swap:
-                    print(f'op.name: {op.name}')
+                    # print(f'op.name: {op.name}')
                     fct_list.append(self.get_del_data_swapout(op, i))
                 else:
                     fct_list.append(self.get_del_data(op, i))

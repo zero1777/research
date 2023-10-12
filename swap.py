@@ -4,6 +4,7 @@ def active_bytes():
     stats = torch.cuda.memory_stats()
     current_active_byte =  stats['active_bytes.all.current']
     return current_active_byte
+
 a = torch.tensor([1., 2., 3.], requires_grad=True, device='cuda:0')
 t = a.size()
 print('GPU memory: ', active_bytes())
@@ -17,27 +18,31 @@ print('GPU memory: ', active_bytes())
 
 # # del a
 c = a ** 2
-d = c ** 3
-e = d
+
+print('a: ', a)
+print('c: ', c)
 print('d: ', d)
 print('e: ', e)
 
 with torch.cuda.stream(torch.cuda.Stream()):
     b = torch.empty(d.size(), device='cpu:0')
-    b.copy_(d, non_blocking=True)
-    b = b.detach().requires_grad_(True)
-    print('d: ', d)
+    b.copy_(d)
+    # b = b.detach()
+    print('b: ', b)
 d.data = torch.empty(0, device='cuda:0')
 
-print('d: ', d)
-print('e: ', e)
+# print('d: ', d)
+# print('e: ', e)
 
 d.data = b.data.cuda(non_blocking=True)
 print('d: ', d)
 print('e: ', e)
 
 
-# e.sum().backward()
+c.sum().backward()
+print('a.grad: ', a.grad)
+e.sum().backward()
+print('a.grad: ', a.grad)
 # a.data = torch.empty(0, device='cuda:0')
 # print('GPU memory: ', active_bytes())
 

@@ -94,7 +94,7 @@ def train_test(mod, inputs, optimizer, repeat=2):
     training_time = start_event.elapsed_time(end_event)
 
     print(f'training_time (sec): {training_time/1000}')
-    print(f'peak_mem (B): {peak_mem}')
+    print(f'peak_mem (MB): {peak_mem/1024**2}')
 
 
 def normal_model_train_test(model, sample):
