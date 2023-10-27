@@ -1,0 +1,206 @@
+// S_graph_list: sequentialized simplified forward graph
+digraph resnet101_seq_S_graph {
+	"_0_-- inputs --" [label="" style=dashed]
+	_0___13_input [label="__13_input = torch._convolution(x, self.conv1.weight, None, [2, 2], [3, 3], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	"_0_-- inputs --" -> _0___13_input [label=x]
+	_0_input [label=INPUT color=green style=dashed]
+	_0_output [label=OUTPUT color=green style=dashed]
+	_0_input -> "_0_-- inputs --" [label=x]
+	_0___13_input -> _0_output [label=__13_input]
+	"_1_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_1___25_input [label="__25_input = torch.batch_norm(__13_input, self.bn1.weight, self.bn1.bias, self.bn1.running_mean, self.bn1.running_var, True, 0.1, 1e-05, True)
+__26_fv = torch.relu_(__25_input)"]
+	"_1_init_node of bloc, should NEVER be used" -> _1___25_input [label=__13_input]
+	_1_input [label=INPUT color=green style=dashed]
+	_1_output [label=OUTPUT color=green style=dashed]
+	_1_input -> "_1_init_node of bloc, should NEVER be used" [label=__13_input]
+	_1___25_input -> _1_output [label="__25_input
+__26_fv"]
+	"_2_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_2___28_input [label="__28_input = torch.max_pool2d(__26_fv, [3, 3], [2, 2], [1, 1], [1, 1])"]
+	"_2_init_node of bloc, should NEVER be used" -> _2___28_input [label=__26_fv]
+	_2_input [label=INPUT color=green style=dashed]
+	_2_output [label=OUTPUT color=green style=dashed]
+	_2_input -> "_2_init_node of bloc, should NEVER be used" [label=__25_input]
+	_2___28_input -> _2_output [label=__28_input]
+	"_3_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_3___43_input [label="__43_input = torch._convolution(__28_input, self.layer1[0].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_3___55_input [label="__55_input = torch.batch_norm(__43_input, self.layer1[0].bn1.weight, self.layer1[0].bn1.bias, self.layer1[0].bn1.running_mean, self.layer1[0].bn1.running_var, True, 0.1, 1e-05, True)
+__57_fv = torch.relu_(__55_input)"]
+	_3___59_input [label="__59_input = torch._convolution(__57_fv, self.layer1[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_3___72_out [label="__72_out = torch.batch_norm(__59_input, self.layer1[0].bn2.weight, self.layer1[0].bn2.bias, self.layer1[0].bn2.running_mean, self.layer1[0].bn2.running_var, True, 0.1, 1e-05, True)
+__64_input = torch.Tensor.add_(__72_out, __28_input)
+__73_fv = torch.relu_(__64_input)"]
+	"_3_init_node of bloc, should NEVER be used" -> _3___43_input [label=__28_input]
+	_3___43_input -> _3___55_input [label=__43_input]
+	_3___55_input -> _3___59_input [label=__57_fv]
+	_3___59_input -> _3___72_out [label=__59_input]
+	"_3_init_node of bloc, should NEVER be used" -> _3___72_out [label=__28_input]
+	_3_input [label=INPUT color=green style=dashed]
+	_3_output [label=OUTPUT color=green style=dashed]
+	_3_input -> "_3_init_node of bloc, should NEVER be used" [label=__28_input]
+	_3___72_out -> _3_output [label="__72_out
+__64_input
+__73_fv"]
+	"_4_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_4___81_input [label="__81_input = torch._convolution(__73_fv, self.layer1[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_4___93_input [label="__93_input = torch.batch_norm(__81_input, self.layer1[1].bn1.weight, self.layer1[1].bn1.bias, self.layer1[1].bn1.running_mean, self.layer1[1].bn1.running_var, True, 0.1, 1e-05, True)
+__95_fv = torch.relu_(__93_input)"]
+	_4___97_input [label="__97_input = torch._convolution(__95_fv, self.layer1[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_4___110_out [label="__110_out = torch.batch_norm(__97_input, self.layer1[1].bn2.weight, self.layer1[1].bn2.bias, self.layer1[1].bn2.running_mean, self.layer1[1].bn2.running_var, True, 0.1, 1e-05, True)
+__102_input = torch.Tensor.add_(__110_out, __73_fv)
+__111_fv = torch.relu_(__102_input)"]
+	"_4_init_node of bloc, should NEVER be used" -> _4___81_input [label=__73_fv]
+	_4___81_input -> _4___93_input [label=__81_input]
+	_4___93_input -> _4___97_input [label=__95_fv]
+	_4___97_input -> _4___110_out [label=__97_input]
+	"_4_init_node of bloc, should NEVER be used" -> _4___110_out [label=__73_fv]
+	_4_input [label=INPUT color=green style=dashed]
+	_4_output [label=OUTPUT color=green style=dashed]
+	_4_input -> "_4_init_node of bloc, should NEVER be used" [label=__72_out]
+	_4___110_out -> _4_output [label="__110_out
+__102_input
+__111_fv"]
+	"_5_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_5___124_input [label="__124_input = torch._convolution(__111_fv, self.layer2[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_5___136_input [label="__136_input = torch.batch_norm(__124_input, self.layer2[0].bn1.weight, self.layer2[0].bn1.bias, self.layer2[0].bn1.running_mean, self.layer2[0].bn1.running_var, True, 0.1, 1e-05, True)
+__138_fv = torch.relu_(__136_input)"]
+	_5___140_input [label="__140_input = torch._convolution(__138_fv, self.layer2[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_5___158_input [label="__158_input = torch._convolution(__111_fv, self.layer2[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_5___170_identity [label="__170_identity = torch.batch_norm(__158_input, self.layer2[0].downsample[1].weight, self.layer2[0].downsample[1].bias, self.layer2[0].downsample[1].running_mean, self.layer2[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_5___153_out [label="__153_out = torch.batch_norm(__140_input, self.layer2[0].bn2.weight, self.layer2[0].bn2.bias, self.layer2[0].bn2.running_mean, self.layer2[0].bn2.running_var, True, 0.1, 1e-05, True)
+__145_input = torch.Tensor.add_(__153_out, __170_identity)
+__171_fv = torch.relu_(__145_input)"]
+	"_5_init_node of bloc, should NEVER be used" -> _5___124_input [label=__111_fv]
+	_5___124_input -> _5___136_input [label=__124_input]
+	_5___136_input -> _5___140_input [label=__138_fv]
+	"_5_init_node of bloc, should NEVER be used" -> _5___158_input [label=__111_fv]
+	_5___158_input -> _5___170_identity [label=__158_input]
+	_5___140_input -> _5___153_out [label=__140_input]
+	_5___170_identity -> _5___153_out [label=__170_identity]
+	_5_input [label=INPUT color=green style=dashed]
+	_5_output [label=OUTPUT color=green style=dashed]
+	_5_input -> "_5_init_node of bloc, should NEVER be used" [label=__110_out]
+	_5___153_out -> _5_output [label="__153_out
+__145_input
+__171_fv"]
+	"_6_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_6___179_input [label="__179_input = torch._convolution(__171_fv, self.layer2[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_6___191_input [label="__191_input = torch.batch_norm(__179_input, self.layer2[1].bn1.weight, self.layer2[1].bn1.bias, self.layer2[1].bn1.running_mean, self.layer2[1].bn1.running_var, True, 0.1, 1e-05, True)
+__193_fv = torch.relu_(__191_input)"]
+	_6___195_input [label="__195_input = torch._convolution(__193_fv, self.layer2[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_6___208_out [label="__208_out = torch.batch_norm(__195_input, self.layer2[1].bn2.weight, self.layer2[1].bn2.bias, self.layer2[1].bn2.running_mean, self.layer2[1].bn2.running_var, True, 0.1, 1e-05, True)
+__200_input = torch.Tensor.add_(__208_out, __171_fv)
+__209_fv = torch.relu_(__200_input)"]
+	"_6_init_node of bloc, should NEVER be used" -> _6___179_input [label=__171_fv]
+	_6___179_input -> _6___191_input [label=__179_input]
+	_6___191_input -> _6___195_input [label=__193_fv]
+	_6___195_input -> _6___208_out [label=__195_input]
+	"_6_init_node of bloc, should NEVER be used" -> _6___208_out [label=__171_fv]
+	_6_input [label=INPUT color=green style=dashed]
+	_6_output [label=OUTPUT color=green style=dashed]
+	_6_input -> "_6_init_node of bloc, should NEVER be used" [label=__153_out]
+	_6___208_out -> _6_output [label="__208_out
+__200_input
+__209_fv"]
+	"_7_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_7___221_input [label="__221_input = torch._convolution(__209_fv, self.layer3[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_7___233_input [label="__233_input = torch.batch_norm(__221_input, self.layer3[0].bn1.weight, self.layer3[0].bn1.bias, self.layer3[0].bn1.running_mean, self.layer3[0].bn1.running_var, True, 0.1, 1e-05, True)
+__235_fv = torch.relu_(__233_input)"]
+	_7___237_input [label="__237_input = torch._convolution(__235_fv, self.layer3[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_7___255_input [label="__255_input = torch._convolution(__209_fv, self.layer3[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_7___267_identity [label="__267_identity = torch.batch_norm(__255_input, self.layer3[0].downsample[1].weight, self.layer3[0].downsample[1].bias, self.layer3[0].downsample[1].running_mean, self.layer3[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_7___250_out [label="__250_out = torch.batch_norm(__237_input, self.layer3[0].bn2.weight, self.layer3[0].bn2.bias, self.layer3[0].bn2.running_mean, self.layer3[0].bn2.running_var, True, 0.1, 1e-05, True)
+__242_input = torch.Tensor.add_(__250_out, __267_identity)
+__268_fv = torch.relu_(__242_input)"]
+	"_7_init_node of bloc, should NEVER be used" -> _7___221_input [label=__209_fv]
+	_7___221_input -> _7___233_input [label=__221_input]
+	_7___233_input -> _7___237_input [label=__235_fv]
+	"_7_init_node of bloc, should NEVER be used" -> _7___255_input [label=__209_fv]
+	_7___255_input -> _7___267_identity [label=__255_input]
+	_7___237_input -> _7___250_out [label=__237_input]
+	_7___267_identity -> _7___250_out [label=__267_identity]
+	_7_input [label=INPUT color=green style=dashed]
+	_7_output [label=OUTPUT color=green style=dashed]
+	_7_input -> "_7_init_node of bloc, should NEVER be used" [label=__208_out]
+	_7___250_out -> _7_output [label="__250_out
+__242_input
+__268_fv"]
+	"_8_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_8___276_input [label="__276_input = torch._convolution(__268_fv, self.layer3[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_8___288_input [label="__288_input = torch.batch_norm(__276_input, self.layer3[1].bn1.weight, self.layer3[1].bn1.bias, self.layer3[1].bn1.running_mean, self.layer3[1].bn1.running_var, True, 0.1, 1e-05, True)
+__290_fv = torch.relu_(__288_input)"]
+	_8___292_input [label="__292_input = torch._convolution(__290_fv, self.layer3[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_8___305_out [label="__305_out = torch.batch_norm(__292_input, self.layer3[1].bn2.weight, self.layer3[1].bn2.bias, self.layer3[1].bn2.running_mean, self.layer3[1].bn2.running_var, True, 0.1, 1e-05, True)
+__297_input = torch.Tensor.add_(__305_out, __268_fv)
+__306_fv = torch.relu_(__297_input)"]
+	"_8_init_node of bloc, should NEVER be used" -> _8___276_input [label=__268_fv]
+	_8___276_input -> _8___288_input [label=__276_input]
+	_8___288_input -> _8___292_input [label=__290_fv]
+	_8___292_input -> _8___305_out [label=__292_input]
+	"_8_init_node of bloc, should NEVER be used" -> _8___305_out [label=__268_fv]
+	_8_input [label=INPUT color=green style=dashed]
+	_8_output [label=OUTPUT color=green style=dashed]
+	_8_input -> "_8_init_node of bloc, should NEVER be used" [label=__250_out]
+	_8___305_out -> _8_output [label="__305_out
+__297_input
+__306_fv"]
+	"_9_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_9___319_input [label="__319_input = torch._convolution(__306_fv, self.layer4[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_9___331_input [label="__331_input = torch.batch_norm(__319_input, self.layer4[0].bn1.weight, self.layer4[0].bn1.bias, self.layer4[0].bn1.running_mean, self.layer4[0].bn1.running_var, True, 0.1, 1e-05, True)
+__333_fv = torch.relu_(__331_input)"]
+	_9___335_input [label="__335_input = torch._convolution(__333_fv, self.layer4[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_9___353_input [label="__353_input = torch._convolution(__306_fv, self.layer4[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_9___365_identity [label="__365_identity = torch.batch_norm(__353_input, self.layer4[0].downsample[1].weight, self.layer4[0].downsample[1].bias, self.layer4[0].downsample[1].running_mean, self.layer4[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_9___348_out [label="__348_out = torch.batch_norm(__335_input, self.layer4[0].bn2.weight, self.layer4[0].bn2.bias, self.layer4[0].bn2.running_mean, self.layer4[0].bn2.running_var, True, 0.1, 1e-05, True)
+__340_input = torch.Tensor.add_(__348_out, __365_identity)
+__366_fv = torch.relu_(__340_input)"]
+	"_9_init_node of bloc, should NEVER be used" -> _9___319_input [label=__306_fv]
+	_9___319_input -> _9___331_input [label=__319_input]
+	_9___331_input -> _9___335_input [label=__333_fv]
+	"_9_init_node of bloc, should NEVER be used" -> _9___353_input [label=__306_fv]
+	_9___353_input -> _9___365_identity [label=__353_input]
+	_9___335_input -> _9___348_out [label=__335_input]
+	_9___365_identity -> _9___348_out [label=__365_identity]
+	_9_input [label=INPUT color=green style=dashed]
+	_9_output [label=OUTPUT color=green style=dashed]
+	_9_input -> "_9_init_node of bloc, should NEVER be used" [label=__305_out]
+	_9___348_out -> _9_output [label="__348_out
+__340_input
+__366_fv"]
+	"_10_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_10___374_input [label="__374_input = torch._convolution(__366_fv, self.layer4[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_10___386_input [label="__386_input = torch.batch_norm(__374_input, self.layer4[1].bn1.weight, self.layer4[1].bn1.bias, self.layer4[1].bn1.running_mean, self.layer4[1].bn1.running_var, True, 0.1, 1e-05, True)
+__388_fv = torch.relu_(__386_input)"]
+	_10___390_input [label="__390_input = torch._convolution(__388_fv, self.layer4[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_10___403_out [label="__403_out = torch.batch_norm(__390_input, self.layer4[1].bn2.weight, self.layer4[1].bn2.bias, self.layer4[1].bn2.running_mean, self.layer4[1].bn2.running_var, True, 0.1, 1e-05, True)
+__395_input = torch.Tensor.add_(__403_out, __366_fv)
+__404_fv = torch.relu_(__395_input)"]
+	"_10_init_node of bloc, should NEVER be used" -> _10___374_input [label=__366_fv]
+	_10___374_input -> _10___386_input [label=__374_input]
+	_10___386_input -> _10___390_input [label=__388_fv]
+	_10___390_input -> _10___403_out [label=__390_input]
+	"_10_init_node of bloc, should NEVER be used" -> _10___403_out [label=__366_fv]
+	_10_input [label=INPUT color=green style=dashed]
+	_10_output [label=OUTPUT color=green style=dashed]
+	_10_input -> "_10_init_node of bloc, should NEVER be used" [label=__348_out]
+	_10___403_out -> _10_output [label="__403_out
+__395_input
+__404_fv"]
+	"_11_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_11___405_x [label="__405_x = torch.nn.functional.adaptive_avg_pool2d(__404_fv, [1, 1])
+__407_input = torch.flatten(__405_x, 1)"]
+	"_11_init_node of bloc, should NEVER be used" -> _11___405_x [label=__404_fv]
+	_11_input [label=INPUT color=green style=dashed]
+	_11_output [label=OUTPUT color=green style=dashed]
+	_11_input -> "_11_init_node of bloc, should NEVER be used" [label=__403_out]
+	_11___405_x -> _11_output [label="__405_x
+__407_input"]
+	"_12_init_node of bloc, should NEVER be used" [label="" style=dashed]
+	_12___410_fv [label="__410_fv = torch.nn.functional.linear(__407_input, self.fc.weight, self.fc.bias)"]
+	"_12_init_node of bloc, should NEVER be used" -> _12___410_fv [label=__407_input]
+	_12_input [label=INPUT color=green style=dashed]
+	_12_output [label=OUTPUT color=green style=dashed]
+	_12_input -> "_12_init_node of bloc, should NEVER be used" [label=__405_x]
+	_12___410_fv -> _12_output [label=__410_fv]
+}

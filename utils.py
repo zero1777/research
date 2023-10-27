@@ -65,7 +65,7 @@ def compare(model1, model2, inputs, dict_kwargs=None):
     if same_grad:
         print(f'---  Same gradient ----')
  
-def train_test(mod, inputs, optimizer, repeat=2):
+def train_test(mod, inputs, optimizer, repeat=1):
 
     device = get_device()
     stream = torch.cuda.current_stream(device)
@@ -74,19 +74,20 @@ def train_test(mod, inputs, optimizer, repeat=2):
 
     torch.cuda.reset_peak_memory_stats()
     max_before = torch.cuda.max_memory_allocated()
-    print(f"max_before: {max_before}")
+    print(f"Before: {max_before}, {torch.cuda.memory_reserved()}")
     start_event.record(stream)
-
     _x = rkgb.make_inputs(mod.graph.model, inputs, None)
+
     for _ in range(repeat):
         # torch.random.manual_seed(0)
         y = mod(**_x)
-        print(f"peak memory in process: {torch.cuda.max_memory_allocated()}")
+        # print(f"[Forward] peak memory in process: {torch.cuda.max_memory_allocated() - max_before}")
         loss = y.mean()
         loss.backward()
         # print(f'loss: {loss}')
         mod.backward()
         optimizer.step()
+        # print(f"[Backward] peak memory in process: {torch.cuda.max_memory_allocated() - max_before}")
     peak_mem = torch.cuda.max_memory_allocated() - max_before
 
     end_event.record(stream)
@@ -94,15 +95,27 @@ def train_test(mod, inputs, optimizer, repeat=2):
     training_time = start_event.elapsed_time(end_event)
 
     print(f'training_time (sec): {training_time/1000}')
-    print(f'peak_mem (MB): {peak_mem/1024**2}')
+    print(f'peak_mem (MB): {peak_mem}')
 
 
 def normal_model_train_test(model, sample):
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
-    for _ in range(10):
+    # optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters())
+    device = get_device()
+    stream = torch.cuda.current_stream(device)
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+    start_event.record(stream)
+    
+    for _ in range(1):
         # torch.random.manual_seed(0)
         y = model(*sample)
         loss = y.mean()
         loss.backward()
-        print(f'loss: {loss}')
+        # print(f'loss: {loss}')
         optimizer.step()
+
+    end_event.record(stream)
+    torch.cuda.synchronize(device)
+    training_time = start_event.elapsed_time(end_event)
+    print(f'training_time (sec): {training_time/1000}')

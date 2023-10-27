@@ -23,9 +23,9 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        # self.recompute_list = ["__13_input data", "__28_input data", "__211_input data", "__98_input data"]
-        self.recompute_list = ["__23_input data", "__16_input0 data"]
-        # self.recompute_list = []
+        self.recompute_list = ["__16_input0 data", "__7_input data"]
+        # self.recompute_list = ["__46_fv data"]
+        self.recompute_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         # self.swap_stream = torch.cuda.Stream()
         self.construct_op_list()
@@ -112,6 +112,10 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             list_kdn += kg.list_kdn
         
+        list_kcn = []
+        for kg in self.graph.graph_list:
+            list_kcn += kg.list_kcn
+        
         self.op_sched = OpSchedule(
             self.fwd_op_list + self.bwd_op_list,
             None,
@@ -127,10 +131,18 @@ class Asuta(torch.nn.Module):
             self.data_memory[kdn.name] = kdn.mem
             if "data" in kdn.name:
                 self.total_memory += kdn.mem
+
+        self.total_overhead = 0
+        self.data_overhead = {}
+        for kcn in list_kcn:
+            self.data_overhead[kcn.name] = kcn.time
+            self.total_overhead += kcn.time
         
         # debug
         print(f'data_memory: {self.data_memory}')
-        # print(f'total_memory: {self.total_memory}')
+        print(f'total_memory: {self.total_memory}')
+        print(f'data_overhead: {self.data_overhead}')
+        print(f'total_overhead: {self.total_overhead}')
         # debug
 
         # self.training_info = {}
@@ -183,7 +195,7 @@ class Asuta(torch.nn.Module):
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_node(self.kdn_dict[deps_name])
                             # dnode.name = dnode.name + "_swapout"
-                            dnode.is_swap = True
+                            # dnode.is_swap = True
                             self.fwd_op_list_v2.append(dnode)
                             # self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
                 for kdn_name in op.users_global:
@@ -207,7 +219,7 @@ class Asuta(torch.nn.Module):
                     regen_tensor(deps.name)
             # parent_op.name = parent_op.name + "_swapin"
             c_node = C_node(parent_op, alive_datas=alive_datas.copy())
-            c_node.is_swap = True
+            # c_node.is_swap = True
             self.bwd_op_list_v2.append(c_node)
             del evict_list[kdn_name]
 
@@ -242,9 +254,9 @@ class Asuta(torch.nn.Module):
 
             self.bwd_op_list_v2.append(op)
 
-        # print(f'bwd_op_list_v2: ')
-        # for idx, a in enumerate(self.bwd_op_list_v2):
-        #     print(f'{idx}: {a}')
+        print(f'bwd_op_list_v2: ')
+        for idx, a in enumerate(self.bwd_op_list_v2):
+            print(f'{idx}: {a}')
             
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -276,8 +288,8 @@ class Asuta(torch.nn.Module):
             print(f'bwd_fct: {l}')
         ''' # debug
 
-        # for i, l in enumerate(self.bwd_fct_list):
-        #     print(f'bwd_fct {i}: {l}')
+        # for i, l in enumerate(self.fwd_fct_list):
+        #     print(f'fwd_fct {i}: {l}')
 
     def _exec(self, fct_list):
         for fct in fct_list:
@@ -308,28 +320,36 @@ class Asuta(torch.nn.Module):
             
 
         # execute the generated function list (forward)
-        # for i, l in enumerate(self.fwd_fct_list):
-        #     print(f'forward: {i}')
-        #     self._exec(l)
+        stream = torch.cuda.current_stream(self.device)
+        for i, l in enumerate(self.fwd_fct_list):
+            se = torch.cuda.Event(enable_timing=True)
+            ee = torch.cuda.Event(enable_timing=True)
+            se.record(stream)
+            self._exec(l)
+            ee.record(stream)
+            torch.cuda.synchronize(device)
+            print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
         #     if i >= 4:
         #         print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
                 
-        for l in self.fwd_fct_list:
-            self._exec(l)
+        # for l in self.fwd_fct_list:
+            # self._exec(l)
 
         
         # print(f'storage: {self.storage.ld}')
+        # torch.cuda.empty_cache()
         return self.storage.get_val(self.graph.output.main_target)
     
     
     def backward(self):
         # execute the generated function list (backward)
         for i, l in enumerate(self.bwd_fct_list):
-            # print(f'backward: {i}')
             # print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
             self._exec(l)
+            # print(f'backward: {i}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_reserved()}')
         # for l in self.bwd_fct_list:
             # self._exec(l)
+        # torch.cuda.empty_cache()
 
 class SimpleCNN(nn.Module):
     def __init__(self):
@@ -353,10 +373,18 @@ class SimpleCNN(nn.Module):
 
 device = torch.device("cuda")
 
+
 model = SimpleCNN().to(device)
 sample = [torch.rand(1, 3, 32, 32).to(device)]
 
+
 # model = models.resnet50().to(device)
+# sample = [torch.rand(5, 3, 224, 224).to(device)]
+
+# model = models.vgg16().to(device)
+# sample = [torch.rand(5, 3, 224, 224).to(device)]
+
+# model = models.squeezenet1_0().to(device)
 # sample = [torch.rand(5, 3, 224, 224).to(device)]
 
 print("---  Doing rematerialization with Asuta ----")
@@ -364,7 +392,12 @@ print("---  Doing rematerialization with Asuta ----")
 # compare(Asuta(model, sample), model, sample)
 optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
+# torch.cuda.empty_cache()
+# print(torch.cuda.memory_allocated())
+# print(torch.cuda.memory_reserved())
+
 train_test(for_test, sample, optimizer)
+# normal_model_train_test(model, sample)
 # y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')

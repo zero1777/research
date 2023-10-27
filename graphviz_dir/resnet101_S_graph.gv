@@ -1,0 +1,128 @@
+// S_graph = Simplified forward graph
+digraph resnet101_S_graph {
+	"_0_-- inputs --" [label="" style=dashed]
+	_0___13_input [label="__13_input = torch._convolution(x, self.conv1.weight, None, [2, 2], [3, 3], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___25_input [label="__25_input = torch.batch_norm(__13_input, self.bn1.weight, self.bn1.bias, self.bn1.running_mean, self.bn1.running_var, True, 0.1, 1e-05, True)
+__26_fv = torch.relu_(__25_input)"]
+	_0___28_input [label="__28_input = torch.max_pool2d(__26_fv, [3, 3], [2, 2], [1, 1], [1, 1])"]
+	_0___43_input [label="__43_input = torch._convolution(__28_input, self.layer1[0].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___55_input [label="__55_input = torch.batch_norm(__43_input, self.layer1[0].bn1.weight, self.layer1[0].bn1.bias, self.layer1[0].bn1.running_mean, self.layer1[0].bn1.running_var, True, 0.1, 1e-05, True)
+__57_fv = torch.relu_(__55_input)"]
+	_0___59_input [label="__59_input = torch._convolution(__57_fv, self.layer1[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___72_out [label="__72_out = torch.batch_norm(__59_input, self.layer1[0].bn2.weight, self.layer1[0].bn2.bias, self.layer1[0].bn2.running_mean, self.layer1[0].bn2.running_var, True, 0.1, 1e-05, True)
+__64_input = torch.Tensor.add_(__72_out, __28_input)
+__73_fv = torch.relu_(__64_input)"]
+	_0___81_input [label="__81_input = torch._convolution(__73_fv, self.layer1[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___93_input [label="__93_input = torch.batch_norm(__81_input, self.layer1[1].bn1.weight, self.layer1[1].bn1.bias, self.layer1[1].bn1.running_mean, self.layer1[1].bn1.running_var, True, 0.1, 1e-05, True)
+__95_fv = torch.relu_(__93_input)"]
+	_0___97_input [label="__97_input = torch._convolution(__95_fv, self.layer1[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___110_out [label="__110_out = torch.batch_norm(__97_input, self.layer1[1].bn2.weight, self.layer1[1].bn2.bias, self.layer1[1].bn2.running_mean, self.layer1[1].bn2.running_var, True, 0.1, 1e-05, True)
+__102_input = torch.Tensor.add_(__110_out, __73_fv)
+__111_fv = torch.relu_(__102_input)"]
+	_0___124_input [label="__124_input = torch._convolution(__111_fv, self.layer2[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___136_input [label="__136_input = torch.batch_norm(__124_input, self.layer2[0].bn1.weight, self.layer2[0].bn1.bias, self.layer2[0].bn1.running_mean, self.layer2[0].bn1.running_var, True, 0.1, 1e-05, True)
+__138_fv = torch.relu_(__136_input)"]
+	_0___140_input [label="__140_input = torch._convolution(__138_fv, self.layer2[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___158_input [label="__158_input = torch._convolution(__111_fv, self.layer2[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___170_identity [label="__170_identity = torch.batch_norm(__158_input, self.layer2[0].downsample[1].weight, self.layer2[0].downsample[1].bias, self.layer2[0].downsample[1].running_mean, self.layer2[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_0___153_out [label="__153_out = torch.batch_norm(__140_input, self.layer2[0].bn2.weight, self.layer2[0].bn2.bias, self.layer2[0].bn2.running_mean, self.layer2[0].bn2.running_var, True, 0.1, 1e-05, True)
+__145_input = torch.Tensor.add_(__153_out, __170_identity)
+__171_fv = torch.relu_(__145_input)"]
+	_0___179_input [label="__179_input = torch._convolution(__171_fv, self.layer2[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___191_input [label="__191_input = torch.batch_norm(__179_input, self.layer2[1].bn1.weight, self.layer2[1].bn1.bias, self.layer2[1].bn1.running_mean, self.layer2[1].bn1.running_var, True, 0.1, 1e-05, True)
+__193_fv = torch.relu_(__191_input)"]
+	_0___195_input [label="__195_input = torch._convolution(__193_fv, self.layer2[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___208_out [label="__208_out = torch.batch_norm(__195_input, self.layer2[1].bn2.weight, self.layer2[1].bn2.bias, self.layer2[1].bn2.running_mean, self.layer2[1].bn2.running_var, True, 0.1, 1e-05, True)
+__200_input = torch.Tensor.add_(__208_out, __171_fv)
+__209_fv = torch.relu_(__200_input)"]
+	_0___221_input [label="__221_input = torch._convolution(__209_fv, self.layer3[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___233_input [label="__233_input = torch.batch_norm(__221_input, self.layer3[0].bn1.weight, self.layer3[0].bn1.bias, self.layer3[0].bn1.running_mean, self.layer3[0].bn1.running_var, True, 0.1, 1e-05, True)
+__235_fv = torch.relu_(__233_input)"]
+	_0___237_input [label="__237_input = torch._convolution(__235_fv, self.layer3[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___255_input [label="__255_input = torch._convolution(__209_fv, self.layer3[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___267_identity [label="__267_identity = torch.batch_norm(__255_input, self.layer3[0].downsample[1].weight, self.layer3[0].downsample[1].bias, self.layer3[0].downsample[1].running_mean, self.layer3[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_0___250_out [label="__250_out = torch.batch_norm(__237_input, self.layer3[0].bn2.weight, self.layer3[0].bn2.bias, self.layer3[0].bn2.running_mean, self.layer3[0].bn2.running_var, True, 0.1, 1e-05, True)
+__242_input = torch.Tensor.add_(__250_out, __267_identity)
+__268_fv = torch.relu_(__242_input)"]
+	_0___276_input [label="__276_input = torch._convolution(__268_fv, self.layer3[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___288_input [label="__288_input = torch.batch_norm(__276_input, self.layer3[1].bn1.weight, self.layer3[1].bn1.bias, self.layer3[1].bn1.running_mean, self.layer3[1].bn1.running_var, True, 0.1, 1e-05, True)
+__290_fv = torch.relu_(__288_input)"]
+	_0___292_input [label="__292_input = torch._convolution(__290_fv, self.layer3[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___305_out [label="__305_out = torch.batch_norm(__292_input, self.layer3[1].bn2.weight, self.layer3[1].bn2.bias, self.layer3[1].bn2.running_mean, self.layer3[1].bn2.running_var, True, 0.1, 1e-05, True)
+__297_input = torch.Tensor.add_(__305_out, __268_fv)
+__306_fv = torch.relu_(__297_input)"]
+	_0___319_input [label="__319_input = torch._convolution(__306_fv, self.layer4[0].conv1.weight, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___331_input [label="__331_input = torch.batch_norm(__319_input, self.layer4[0].bn1.weight, self.layer4[0].bn1.bias, self.layer4[0].bn1.running_mean, self.layer4[0].bn1.running_var, True, 0.1, 1e-05, True)
+__333_fv = torch.relu_(__331_input)"]
+	_0___335_input [label="__335_input = torch._convolution(__333_fv, self.layer4[0].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___353_input [label="__353_input = torch._convolution(__306_fv, self.layer4[0].downsample[0].weight, None, [2, 2], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___365_identity [label="__365_identity = torch.batch_norm(__353_input, self.layer4[0].downsample[1].weight, self.layer4[0].downsample[1].bias, self.layer4[0].downsample[1].running_mean, self.layer4[0].downsample[1].running_var, True, 0.1, 1e-05, True)"]
+	_0___348_out [label="__348_out = torch.batch_norm(__335_input, self.layer4[0].bn2.weight, self.layer4[0].bn2.bias, self.layer4[0].bn2.running_mean, self.layer4[0].bn2.running_var, True, 0.1, 1e-05, True)
+__340_input = torch.Tensor.add_(__348_out, __365_identity)
+__366_fv = torch.relu_(__340_input)"]
+	_0___374_input [label="__374_input = torch._convolution(__366_fv, self.layer4[1].conv1.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___386_input [label="__386_input = torch.batch_norm(__374_input, self.layer4[1].bn1.weight, self.layer4[1].bn1.bias, self.layer4[1].bn1.running_mean, self.layer4[1].bn1.running_var, True, 0.1, 1e-05, True)
+__388_fv = torch.relu_(__386_input)"]
+	_0___390_input [label="__390_input = torch._convolution(__388_fv, self.layer4[1].conv2.weight, None, [1, 1], [1, 1], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	_0___403_out [label="__403_out = torch.batch_norm(__390_input, self.layer4[1].bn2.weight, self.layer4[1].bn2.bias, self.layer4[1].bn2.running_mean, self.layer4[1].bn2.running_var, True, 0.1, 1e-05, True)
+__395_input = torch.Tensor.add_(__403_out, __366_fv)
+__404_fv = torch.relu_(__395_input)"]
+	_0___405_x [label="__405_x = torch.nn.functional.adaptive_avg_pool2d(__404_fv, [1, 1])
+__407_input = torch.flatten(__405_x, 1)"]
+	_0___410_fv [label="__410_fv = torch.nn.functional.linear(__407_input, self.fc.weight, self.fc.bias)"]
+	"_0_-- inputs --" -> _0___13_input [label=x]
+	_0___13_input -> _0___25_input [label=__13_input]
+	_0___25_input -> _0___28_input [label=__26_fv]
+	_0___28_input -> _0___43_input [label=__28_input]
+	_0___43_input -> _0___55_input [label=__43_input]
+	_0___55_input -> _0___59_input [label=__57_fv]
+	_0___59_input -> _0___72_out [label=__59_input]
+	_0___28_input -> _0___72_out [label=__28_input]
+	_0___72_out -> _0___81_input [label=__73_fv]
+	_0___81_input -> _0___93_input [label=__81_input]
+	_0___93_input -> _0___97_input [label=__95_fv]
+	_0___97_input -> _0___110_out [label=__97_input]
+	_0___72_out -> _0___110_out [label=__73_fv]
+	_0___110_out -> _0___124_input [label=__111_fv]
+	_0___124_input -> _0___136_input [label=__124_input]
+	_0___136_input -> _0___140_input [label=__138_fv]
+	_0___110_out -> _0___158_input [label=__111_fv]
+	_0___158_input -> _0___170_identity [label=__158_input]
+	_0___140_input -> _0___153_out [label=__140_input]
+	_0___170_identity -> _0___153_out [label=__170_identity]
+	_0___153_out -> _0___179_input [label=__171_fv]
+	_0___179_input -> _0___191_input [label=__179_input]
+	_0___191_input -> _0___195_input [label=__193_fv]
+	_0___195_input -> _0___208_out [label=__195_input]
+	_0___153_out -> _0___208_out [label=__171_fv]
+	_0___208_out -> _0___221_input [label=__209_fv]
+	_0___221_input -> _0___233_input [label=__221_input]
+	_0___233_input -> _0___237_input [label=__235_fv]
+	_0___208_out -> _0___255_input [label=__209_fv]
+	_0___255_input -> _0___267_identity [label=__255_input]
+	_0___237_input -> _0___250_out [label=__237_input]
+	_0___267_identity -> _0___250_out [label=__267_identity]
+	_0___250_out -> _0___276_input [label=__268_fv]
+	_0___276_input -> _0___288_input [label=__276_input]
+	_0___288_input -> _0___292_input [label=__290_fv]
+	_0___292_input -> _0___305_out [label=__292_input]
+	_0___250_out -> _0___305_out [label=__268_fv]
+	_0___305_out -> _0___319_input [label=__306_fv]
+	_0___319_input -> _0___331_input [label=__319_input]
+	_0___331_input -> _0___335_input [label=__333_fv]
+	_0___305_out -> _0___353_input [label=__306_fv]
+	_0___353_input -> _0___365_identity [label=__353_input]
+	_0___335_input -> _0___348_out [label=__335_input]
+	_0___365_identity -> _0___348_out [label=__365_identity]
+	_0___348_out -> _0___374_input [label=__366_fv]
+	_0___374_input -> _0___386_input [label=__374_input]
+	_0___386_input -> _0___390_input [label=__388_fv]
+	_0___390_input -> _0___403_out [label=__390_input]
+	_0___348_out -> _0___403_out [label=__366_fv]
+	_0___403_out -> _0___405_x [label=__404_fv]
+	_0___405_x -> _0___410_fv [label=__407_input]
+	_0_input [label=INPUT color=green style=dashed]
+	_0_output [label=OUTPUT color=green style=dashed]
+	_0_input -> "_0_-- inputs --" [label=x]
+	_0___410_fv -> _0_output [label=__410_fv]
+}

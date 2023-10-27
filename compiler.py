@@ -75,11 +75,11 @@ def fct_run_forward_no_grad(storage, code):
 
 def fct_run_forward_with_grad(storage, code, no_save_list=[]):
     def fct():
-        # with torch.autograd.graph.saved_tensors_hooks(
-        #     fct_get_pack(storage, no_save_list), fct_get_unpack(storage)
-        # ):
-        #     exec(code, storage.gd, storage.ld)
-        exec(code, storage.gd, storage.ld)
+        with torch.autograd.graph.saved_tensors_hooks(
+            fct_get_pack(storage, no_save_list), fct_get_unpack(storage)
+        ):
+            exec(code, storage.gd, storage.ld)
+        # exec(code, storage.gd, storage.ld)
 
     return fct
 
@@ -405,6 +405,8 @@ class Compiler:
         rec = op.name in self.op_sched.op_name_list[:i]
         last = not (op.name in self.op_sched.op_name_list[i + 1 :])
 
+        # print(f'op.name: {op.name}, {last}')
+
         l = []
         l2 = []
 
@@ -461,7 +463,7 @@ class Compiler:
             l.append(fct_del_tensor_base(self.storage, op.main_target))
         for v in op.tensor_targets:
             l.append(fct_del_tensor_data(self.storage, v))
-            print(f'op.name: {op.name}, {v}')
+            # print(f'op.name: {op.name}, {v}')
         for v in op.container_targets:
             l.append(fct_del_var(self.storage, v))
         # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
