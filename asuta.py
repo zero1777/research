@@ -324,7 +324,7 @@ class Asuta(torch.nn.Module):
             se.record(stream)
             self._exec(l)
             ee.record(stream)
-            torch.cuda.synchronize(device)
+            torch.cuda.synchronize(self.device)
             print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
         #     if i >= 4:
         #         print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
