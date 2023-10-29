@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from graph import Graph
 from utils import *
-from node import C_node, D_node, OpSchedule
+from node import C_node, D_node, NodeSchedule
 from compiler import Compiler, RngState, Storage
 from asuta import Asuta
 

@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from graph import Graph
 from utils import *
-from node import C_node, D_node, OpSchedule
+from node import C_node, D_node, NodeSchedule
 from compiler import Compiler, RngState, Storage
 
 class Asuta(torch.nn.Module):
@@ -113,7 +113,7 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             list_kcn += kg.list_kcn
         
-        self.op_sched = OpSchedule(
+        self.op_sched = NodeSchedule(
             self.fwd_op_list + self.bwd_op_list,
             None,
             self.graph.graph_list[0].input_kdn_data,
@@ -259,7 +259,7 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             list_kdn += kg.list_kdn
         
-        self.op_sched_v2 = OpSchedule(
+        self.op_sched_v2 = NodeSchedule(
             self.fwd_op_list_v2 + self.bwd_op_list_v2,
             None,
             self.graph.graph_list[0].input_kdn_data,

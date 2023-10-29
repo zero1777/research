@@ -80,7 +80,7 @@ class D_node: # data node
         return f"D_node: Del {self.name} {self.main_target}"
 
 
-class OpSchedule:
+class NodeSchedule:
     def __init__(
         self,
         op_list,
