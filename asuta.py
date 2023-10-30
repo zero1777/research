@@ -10,6 +10,7 @@ from graph import Graph
 from utils import *
 from node import C_node, D_node, NodeSchedule
 from compiler import Compiler, RngState, Storage
+from logger import Logger
 
 class Asuta(torch.nn.Module):
     def __init__(
@@ -20,10 +21,10 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.recompute_list = ["__16_input0 data", "__7_input data"]
-        # self.recompute_list = ["__46_fv data"]
-        self.recompute_list = []
+        self.eviction_list = ["__16_input0 data", "__7_input data"]
+        self.eviction_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
+        self.logger = Logger("asuta.log", print_log=True)
         self.construct_op_list()
         self.construct_op_list_v2()
         self.compile_function()
@@ -42,16 +43,16 @@ class Asuta(torch.nn.Module):
             users = {} # dict: name -> num of users
             op_list = [] # list of C_node and D_node
             alive_datas = set() # current alive datas (Notice that the range of alive datas is only in one k_graph, we will reconstruct it later)
-            recompute_tensors = {} # dict: kdn.name -> kcn
 
             # initialze
             for kdn in kg.list_kdn:
                 self.kdn_dict[kdn.name] = kdn
                 self.kdn_users_counter[kdn.name] = len(kdn.users_global)
                 users[kdn.name] = len(kdn.users_real)
-                # print(f'users: {users}')
-                # print(f'kdn: {kdn.name}, {[n.name for n in kdn.users_real]}')
-                # print(f'kdn: {kdn.name}, {[c.name for c in kdn.users_global]}')
+
+                self.logger.debug(f'users: {kdn.name}')
+                self.logger.debug(f'kdn: {kdn.name}, {[n.name for n in kdn.users_real]}')
+                self.logger.debug(f'kdn: {kdn.name}, {[c.name for c in kdn.users_global]}')
             
             for kcn in kg.list_kcn:
                 self.kcn_dict[kcn.name] = kcn
@@ -62,9 +63,7 @@ class Asuta(torch.nn.Module):
                 for kdn in kcn.users:
                     alive_datas.add(kdn.name)
 
-                ''' # debug
-                print(f'kcn: {kcn.name}, alive_datas: {alive_datas}')
-                ''' # debug
+                self.logger.debug(f'kcn: {kcn.name}, alive_datas: {alive_datas}')
 
                 # update the counter of used kdn (decrement) since kcn is executed
                 for deps in kcn.deps_global:
@@ -76,12 +75,6 @@ class Asuta(torch.nn.Module):
                         if users[deps.name] == 0:
                             alive_datas.remove(deps.name)
                             op_list.append(D_node(deps))
-
-            
-            ''' # debug
-            for op in op_list:
-                print(f'op: {op}')
-            ''' # debug
         
             loss_idx = 0
             for i, op in enumerate(op_list):
@@ -96,13 +89,8 @@ class Asuta(torch.nn.Module):
         reverse_bwd_op_list = self.tmp_bwd_op_list[::-1]
         self.bwd_op_list = [op for bwlist in reverse_bwd_op_list for op in bwlist]
 
-        # debug
-        # for op in self.fwd_op_list:
-        #     print(f'fwd_op: {op}')
-
-        # for op in self.bwd_op_list:
-        #     print(f'bwd_op: {op}')
-        # debug
+        self.logger.debug(f'fwd_op: {[op.name for op in self.fwd_op_list]}')
+        self.logger.debug(f'bwd_op: {[op.name for op in self.bwd_op_list]}')
 
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -134,21 +122,10 @@ class Asuta(torch.nn.Module):
             self.data_overhead[kcn.name] = kcn.time
             self.total_overhead += kcn.time
         
-        # debug
-        print(f'data_memory: {self.data_memory}')
-        print(f'total_memory: {self.total_memory}')
-        print(f'data_overhead: {self.data_overhead}')
-        print(f'total_overhead: {self.total_overhead}')
-        # debug
-
-        # self.training_info = {}
-        # for kcn in kg.list_kcn:
-        #     self.training_info[kcn.name] = [kcn.overhead, kcn.time]
-        # print(f'training_info: {self.training_info}')
-
-        # for kg in self.graph.graph_list:
-        #     for kdn in kg.list_kdn:
-        #         print(f'kdn: {kdn.name}, info: {kdn.info}')
+        self.logger.info(f'data_memory: {self.data_memory}')
+        self.logger.info(f'total_memory: {self.total_memory}')
+        self.logger.info(f'data_overhead: {self.data_overhead}')
+        self.logger.info(f'total_overhead: {self.total_overhead}')
         
     def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
@@ -182,7 +159,7 @@ class Asuta(torch.nn.Module):
 
                     users[deps_name] -= 1
 
-                    if deps_name in self.recompute_list:
+                    if deps_name in self.eviction_list:
                         assert "grad" not in deps_name
                         if users[deps_name] == 0:
                             assert len(self.kdn_dict[deps_name].deps) == 1
