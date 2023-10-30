@@ -144,13 +144,11 @@ class Asuta(torch.nn.Module):
                         cnt += 1 
                 users[kdn.name] = cnt
 
-        # print(f'users: {users}')
 
         # forward list
         for op in self.fwd_op_list:
             self.fwd_op_list_v2.append(op)
             if isinstance(op, C_op):
-                # print(f'add_evict_regenerate: {op.name}, {op.users_global}')
                 op.alive_datas = alive_datas.copy()
                 for deps_name in op.deps_global:
                     if deps_name not in users:
@@ -164,26 +162,18 @@ class Asuta(torch.nn.Module):
                         if users[deps_name] == 0:
                             assert len(self.kdn_dict[deps_name].deps) == 1
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
-                            # print(f'op {op.name} {deps_name} {users[deps_name]}')
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_op(self.kdn_dict[deps_name])
                             # dnode.name = dnode.name + "_swapout"
                             dnode.is_swap = True
                             self.fwd_op_list_v2.append(dnode)
-                            # self.fwd_op_list_v2.append(D_op(self.kdn_dict[deps_name]))
+
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
 
             elif isinstance(op, D_op):
                 alive_datas.remove(op.name)
         
-        print(f'fwd_op_list_v2: ')
-        for idx, a in enumerate(self.fwd_op_list_v2):
-            print(f'{idx}: {a}')
-        
-
-        # print(f'alive_datas: {alive_datas}')
-        # print(f'evict_list: {evict_list}')
 
         def regen_tensor(kdn_name):
             parent_op = evict_list[kdn_name]
@@ -227,9 +217,8 @@ class Asuta(torch.nn.Module):
 
             self.bwd_op_list_v2.append(op)
 
-        print(f'bwd_op_list_v2: ')
-        for idx, a in enumerate(self.bwd_op_list_v2):
-            print(f'{idx}: {a}')
+        self.logger.debug(f'fwd_op_list_evict: {[op.name for op in self.fwd_op_list_v2]}')
+        self.logger.debug(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_v2]}')
             
         list_kdn = []
         for kg in self.graph.graph_list:
