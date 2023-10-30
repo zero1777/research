@@ -205,7 +205,7 @@ class Graph_Translator():
                 x.users[user_sn] = translate(st)
             return ()
 
-        # -- K_C_NODE --
+        # -- K_C_node --
         elif isinstance(x,Ktools.K_C_node): # /!\ inplace like S_node /!\
             for attr in [
                 "main_code","inplace_code","body_code",
@@ -218,7 +218,7 @@ class Graph_Translator():
             x.name = f"fwd_{mt}" if x.is_fwd else f"bwd_{mt}"
             return ()
 
-        # -- K_D_NODE --
+        # -- K_D_node --
         elif isinstance(x,Ktools.K_D_node): # /!\ inplace like S_node /!\
             for attr in [
                 "main_target","container_targets",

@@ -147,7 +147,7 @@ def B_to_D(bg : B_graph,model,dict_inputs,device=None,dont_build_dict_info=False
     # --- init and sort ---
     dg = D_graph()
     inputs       = dg.inputs
-    d_nodes      = dg.nodes
+    D_nodes      = dg.nodes
     dict_info    = dg.dict_info
     dg.dict_rand = bg.dict_rand
     dg.dict_constants = bg.dict_constants
@@ -181,7 +181,7 @@ def B_to_D(bg : B_graph,model,dict_inputs,device=None,dont_build_dict_info=False
             dn.deps.add(req_dn)
             req_dn.users.add(dn)
         dict_nodes[bn.target] = dn
-        d_nodes.append(dn)
+        D_nodes.append(dn)
 
         # -- compute the forward to get info --
         if dont_build_dict_info:

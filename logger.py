@@ -10,7 +10,7 @@ class Logger():
         self.logger.addHandler(self.handler)
         self.print_log = print_log
 
-    def output(self, msg):
+    def info(self, msg):
         self.logger.info(msg)
         if self.print_log:
             print(msg)

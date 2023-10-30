@@ -8,9 +8,9 @@ import torch.nn.functional as F
 import torchvision.models as models
 from copy import deepcopy
 
-from graph import Graph, C_node, D_node, NodeSchedule
+from graph import Graph, C_op, D_op, OpSchedule
 from utils import *
-# from node import C_node, D_node, NodeSchedule
+# from node import C_op, D_op, OpSchedule
 from compiler import Compiler, RngState, Storage
 from asuta import Asuta
 

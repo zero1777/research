@@ -93,9 +93,9 @@ Run fwd_loss
 |  Del __10_input data
 |  Run bwd___10_input
 |  Del __10_input grad
-fwd_op_sched_list: [<rockmate.def_op.NodeSchedule object at 0x153c8ac59b90>, <rockmate.def_op.NodeSchedule object at 0x153c8ac0b8d0>, <rockmate.def_op.NodeSchedule object at 0x153c8ac5f7d0>, <rockmate.def_op.NodeSchedule object at 0x153c8ac05550>, <rockmate.def_op.NodeSchedule object at 0x153c8ac5d090>, <rockmate.def_op.NodeSchedule object at 0x153c8ac21c10>, <rockmate.def_op.NodeSchedule object at 0x153c8ac73050>, <rockmate.def_op.NodeSchedule object at 0x153c8ac09590>, <rockmate.def_op.NodeSchedule object at 0x153c8ac82910>, <rockmate.def_op.NodeSchedule object at 0x153c8ac73dd0>, <rockmate.def_op.NodeSchedule object at 0x153c8b5fd750>]
+fwd_op_sched_list: [<rockmate.def_op.OpSchedule object at 0x153c8ac59b90>, <rockmate.def_op.OpSchedule object at 0x153c8ac0b8d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac5f7d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac05550>, <rockmate.def_op.OpSchedule object at 0x153c8ac5d090>, <rockmate.def_op.OpSchedule object at 0x153c8ac21c10>, <rockmate.def_op.OpSchedule object at 0x153c8ac73050>, <rockmate.def_op.OpSchedule object at 0x153c8ac09590>, <rockmate.def_op.OpSchedule object at 0x153c8ac82910>, <rockmate.def_op.OpSchedule object at 0x153c8ac73dd0>, <rockmate.def_op.OpSchedule object at 0x153c8b5fd750>]
 
-bwd_op_sched_list: [<rockmate.def_op.NodeSchedule object at 0x153c8b5ff690>, <rockmate.def_op.NodeSchedule object at 0x153c8ac719d0>, <rockmate.def_op.NodeSchedule object at 0x153c8ac82b90>, <rockmate.def_op.NodeSchedule object at 0x153c8ac085d0>, <rockmate.def_op.NodeSchedule object at 0x153c8ac72390>, <rockmate.def_op.NodeSchedule object at 0x153c8ac21110>, <rockmate.def_op.NodeSchedule object at 0x153c8ac5f590>, <rockmate.def_op.NodeSchedule object at 0x153c8ac05c50>, <rockmate.def_op.NodeSchedule object at 0x153c8ac5c310>, <rockmate.def_op.NodeSchedule object at 0x153c8ac08590>, <rockmate.def_op.NodeSchedule object at 0x153c8ac5bb90>]
+bwd_op_sched_list: [<rockmate.def_op.OpSchedule object at 0x153c8b5ff690>, <rockmate.def_op.OpSchedule object at 0x153c8ac719d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac82b90>, <rockmate.def_op.OpSchedule object at 0x153c8ac085d0>, <rockmate.def_op.OpSchedule object at 0x153c8ac72390>, <rockmate.def_op.OpSchedule object at 0x153c8ac21110>, <rockmate.def_op.OpSchedule object at 0x153c8ac5f590>, <rockmate.def_op.OpSchedule object at 0x153c8ac05c50>, <rockmate.def_op.OpSchedule object at 0x153c8ac5c310>, <rockmate.def_op.OpSchedule object at 0x153c8ac08590>, <rockmate.def_op.OpSchedule object at 0x153c8ac5bb90>]
 
 fwd_op_list: [<rockmate.def_op.RunOp object at 0x153c8b515fd0>, <rockmate.def_op.RunOp object at 0x153c8b5d8b90>, <rockmate.def_op.RunOp object at 0x153c8ac08ad0>, <rockmate.def_op.RunOp object at 0x153c90db2750>, <rockmate.def_op.RunOp object at 0x153c8ac5dd90>, <rockmate.def_op.RunOp object at 0x153c8ac06990>, <rockmate.def_op.RunOp object at 0x153c8b5fe1d0>, <rockmate.def_op.RunOp object at 0x153c8b59c1d0>, <rockmate.def_op.RunOp object at 0x153c8ac5eb50>, <rockmate.def_op.RunOp object at 0x153c8b5ada10>, <rockmate.def_op.RunOp object at 0x153c8ac239d0>, <rockmate.def_op.RunOp object at 0x153c8b5b9f50>, <rockmate.def_op.RunOp object at 0x153c8ac73290>, <rockmate.def_op.RunOp object at 0x153c8b559c90>, <rockmate.def_op.RunOp object at 0x153c8ac05510>, <rockmate.def_op.RunOp object at 0x153c8ac05090>, <rockmate.def_op.RunOp object at 0x153c8ac82810>, <rockmate.def_op.RunOp object at 0x153c8ac5b350>, <rockmate.def_op.RunOp object at 0x153c8ac70610>, <rockmate.def_op.RunOp object at 0x153c8b578110>, <rockmate.def_op.RunOp object at 0x153c8ac5c490>, <rockmate.def_op.RunOp object at 0x153c8ac7de50>]
 
@@ -393,78 +393,78 @@ bwd_fct: [<function fct_del_tensor_grad.<locals>.fct at 0x147bf0616fc0>]
 
 
 
-fwd_op: C_node: Run fwd___10_input
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___7_input
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___16_input0
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___23_input
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___28_input0
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___30_x
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___39_fv
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___36_input2
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___43_fv
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___40_input3
-fwd_op: C_node: Run fwd_loss
-fwd_op: C_node: Run fwd___46_fv
-fwd_op: C_node: Run fwd_loss
+fwd_op: C_op: Run fwd___10_input
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___7_input
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___16_input0
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___23_input
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___28_input0
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___30_x
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___39_fv
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___36_input2
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___43_fv
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___40_input3
+fwd_op: C_op: Run fwd_loss
+fwd_op: C_op: Run fwd___46_fv
+fwd_op: C_op: Run fwd_loss
 
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __46_fv data
-bwd_op: C_node: Run bwd___46_fv
-bwd_op: D_node: Del __46_fv phantoms
-bwd_op: D_node: Del __46_fv grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: C_node: Run bwd___40_input3
-bwd_op: D_node: Del __40_input3 data
-bwd_op: D_node: Del __40_input3 grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __43_fv data
-bwd_op: C_node: Run bwd___43_fv
-bwd_op: D_node: Del __43_fv phantoms
-bwd_op: D_node: Del __43_fv grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: C_node: Run bwd___36_input2
-bwd_op: D_node: Del __36_input2 data
-bwd_op: D_node: Del __36_input2 grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __39_fv data
-bwd_op: C_node: Run bwd___39_fv
-bwd_op: D_node: Del __39_fv phantoms
-bwd_op: D_node: Del __39_fv grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __30_x data
-bwd_op: C_node: Run bwd___30_x
-bwd_op: D_node: Del __30_x phantoms
-bwd_op: D_node: Del __30_x grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: C_node: Run bwd___28_input0
-bwd_op: D_node: Del __28_input0 data
-bwd_op: D_node: Del __28_input0 grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __23_input data
-bwd_op: C_node: Run bwd___23_input
-bwd_op: D_node: Del __23_input grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __16_input0 data
-bwd_op: C_node: Run bwd___16_input0
-bwd_op: D_node: Del __16_input0 phantoms
-bwd_op: D_node: Del __16_input0 grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: C_node: Run bwd___7_input
-bwd_op: D_node: Del __7_input data
-bwd_op: D_node: Del __7_input grad
-bwd_op: C_node: Run fwd_loss
-bwd_op: D_node: Del __10_input data
-bwd_op: C_node: Run bwd___10_input
-bwd_op: D_node: Del __10_input grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __46_fv data
+bwd_op: C_op: Run bwd___46_fv
+bwd_op: D_op: Del __46_fv phantoms
+bwd_op: D_op: Del __46_fv grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: C_op: Run bwd___40_input3
+bwd_op: D_op: Del __40_input3 data
+bwd_op: D_op: Del __40_input3 grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __43_fv data
+bwd_op: C_op: Run bwd___43_fv
+bwd_op: D_op: Del __43_fv phantoms
+bwd_op: D_op: Del __43_fv grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: C_op: Run bwd___36_input2
+bwd_op: D_op: Del __36_input2 data
+bwd_op: D_op: Del __36_input2 grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __39_fv data
+bwd_op: C_op: Run bwd___39_fv
+bwd_op: D_op: Del __39_fv phantoms
+bwd_op: D_op: Del __39_fv grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __30_x data
+bwd_op: C_op: Run bwd___30_x
+bwd_op: D_op: Del __30_x phantoms
+bwd_op: D_op: Del __30_x grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: C_op: Run bwd___28_input0
+bwd_op: D_op: Del __28_input0 data
+bwd_op: D_op: Del __28_input0 grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __23_input data
+bwd_op: C_op: Run bwd___23_input
+bwd_op: D_op: Del __23_input grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __16_input0 data
+bwd_op: C_op: Run bwd___16_input0
+bwd_op: D_op: Del __16_input0 phantoms
+bwd_op: D_op: Del __16_input0 grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: C_op: Run bwd___7_input
+bwd_op: D_op: Del __7_input data
+bwd_op: D_op: Del __7_input grad
+bwd_op: C_op: Run fwd_loss
+bwd_op: D_op: Del __10_input data
+bwd_op: C_op: Run bwd___10_input
+bwd_op: D_op: Del __10_input grad
 
 
 fwd Run fwd___80_input, [<function fct_run_forward_no_grad.<locals>.fct at 0x14fa6db80900>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa6db80860>, <function fct_run_detach.<locals>.fct at 0x14fa6db807c0>, <function fct_run_forward_with_grad.<locals>.fct at 0x14fa6db809a0>, <function fct_get_shapes.<locals>.fct at 0x14fa6db80a40>, <function fct_get_shapes.<locals>.fct at 0x14fa6db80ae0>]

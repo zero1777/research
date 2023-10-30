@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from graph import Graph
 from utils import *
-from node import C_node, D_node, NodeSchedule
+from node import C_op, D_op, OpSchedule
 from compiler import Compiler, RngState, Storage
 from logger import Logger
 
@@ -41,7 +41,7 @@ class Asuta(torch.nn.Module):
 
         for kg in self.graph.graph_list:
             users = {} # dict: name -> num of users
-            op_list = [] # list of C_node and D_node
+            op_list = [] # list of C_op and D_op
             alive_datas = set() # current alive datas (Notice that the range of alive datas is only in one k_graph, we will reconstruct it later)
 
             # initialze
@@ -56,10 +56,10 @@ class Asuta(torch.nn.Module):
             
             for kcn in kg.list_kcn:
                 self.kcn_dict[kcn.name] = kcn
-                op_list.append(C_node(kcn, alive_datas=alive_datas))
+                op_list.append(C_op(kcn, alive_datas=alive_datas))
                 # "loss" op needs to be executed in both forward and backward, so we need to add it twice
                 if "loss" in kcn.name:
-                    op_list.append(C_node(kcn, alive_datas=alive_datas))
+                    op_list.append(C_op(kcn, alive_datas=alive_datas))
                 for kdn in kcn.users:
                     alive_datas.add(kdn.name)
 
@@ -74,7 +74,7 @@ class Asuta(torch.nn.Module):
                         # if the counter is 0, then the kdn is no longer needed
                         if users[deps.name] == 0:
                             alive_datas.remove(deps.name)
-                            op_list.append(D_node(deps))
+                            op_list.append(D_op(deps))
         
             loss_idx = 0
             for i, op in enumerate(op_list):
@@ -100,7 +100,7 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             list_kcn += kg.list_kcn
         
-        self.op_sched = NodeSchedule(
+        self.op_sched = OpSchedule(
             self.fwd_op_list + self.bwd_op_list,
             None,
             self.graph.graph_list[0].input_kdn_data,
@@ -149,7 +149,7 @@ class Asuta(torch.nn.Module):
         # forward list
         for op in self.fwd_op_list:
             self.fwd_op_list_v2.append(op)
-            if isinstance(op, C_node):
+            if isinstance(op, C_op):
                 # print(f'add_evict_regenerate: {op.name}, {op.users_global}')
                 op.alive_datas = alive_datas.copy()
                 for deps_name in op.deps_global:
@@ -166,15 +166,15 @@ class Asuta(torch.nn.Module):
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
                             # print(f'op {op.name} {deps_name} {users[deps_name]}')
                             evict_list[deps_name] = parent_op[0]
-                            dnode = D_node(self.kdn_dict[deps_name])
+                            dnode = D_op(self.kdn_dict[deps_name])
                             # dnode.name = dnode.name + "_swapout"
                             dnode.is_swap = True
                             self.fwd_op_list_v2.append(dnode)
-                            # self.fwd_op_list_v2.append(D_node(self.kdn_dict[deps_name]))
+                            # self.fwd_op_list_v2.append(D_op(self.kdn_dict[deps_name]))
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
 
-            elif isinstance(op, D_node):
+            elif isinstance(op, D_op):
                 alive_datas.remove(op.name)
         
         print(f'fwd_op_list_v2: ')
@@ -191,14 +191,14 @@ class Asuta(torch.nn.Module):
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
             # parent_op.name = parent_op.name + "_swapin"
-            c_node = C_node(parent_op, alive_datas=alive_datas.copy())
-            c_node.is_swap = True
-            self.bwd_op_list_v2.append(c_node)
+            C_op = C_op(parent_op, alive_datas=alive_datas.copy())
+            C_op.is_swap = True
+            self.bwd_op_list_v2.append(C_op)
             del evict_list[kdn_name]
 
         # backward list
         for op in self.bwd_op_list:
-            if isinstance(op, C_node):
+            if isinstance(op, C_op):
                 op.alive_datas = alive_datas.copy()
                 if "loss" in op.name:
                     self.bwd_op_list_v2.append(op) 
@@ -219,7 +219,7 @@ class Asuta(torch.nn.Module):
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
                 
-            elif isinstance(op, D_node):
+            elif isinstance(op, D_op):
                 alive_datas.remove(op.name)
                 if op.name in evict_list:
                     print(f'kdn already in evict {op.name}')
@@ -235,7 +235,7 @@ class Asuta(torch.nn.Module):
         for kg in self.graph.graph_list:
             list_kdn += kg.list_kdn
         
-        self.op_sched_v2 = NodeSchedule(
+        self.op_sched_v2 = OpSchedule(
             self.fwd_op_list_v2 + self.bwd_op_list_v2,
             None,
             self.graph.graph_list[0].input_kdn_data,
@@ -253,16 +253,8 @@ class Asuta(torch.nn.Module):
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
-        ''' # debug
-        for l in self.fwd_fct_list:
-            print(f'fwd_fct: {l}')
-        print('\n')
-        for l in self.bwd_fct_list:
-            print(f'bwd_fct: {l}')
-        ''' # debug
-
-        # for i, l in enumerate(self.fwd_fct_list):
-        #     print(f'fwd_fct {i}: {l}')
+        self.logger.debug(f'fwd_fct: {[fct for fct in self.fwd_fct_list]}')
+        self.logger.debug(f'bwd_fct: {[fct for fct in self.bwd_fct_list]}')
 
     def _exec(self, fct_list):
         for fct in fct_list:
