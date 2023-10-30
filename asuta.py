@@ -24,7 +24,6 @@ class Asuta(torch.nn.Module):
         # self.recompute_list = ["__46_fv data"]
         self.recompute_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
-        # self.swap_stream = torch.cuda.Stream()
         self.construct_op_list()
         self.construct_op_list_v2()
         self.compile_function()
@@ -300,7 +299,6 @@ class Asuta(torch.nn.Module):
         # set input data
         model_inputs = make_inputs(self.graph.model, args, kwargs)
         for k, v in model_inputs.items():
-            # print(f'k: {k}, v: {v}')
             self.storage.add_val(k, v)
         
         # execute init code
@@ -308,7 +306,6 @@ class Asuta(torch.nn.Module):
 
         for kg in self.graph.graph_list:
             for kdn in kg.list_kdn:
-                # print(f'kdn: {kdn.name}, info: {kdn.main_target}')
                 tensor_val = torch.empty(
                     0, device=self.device,
                     requires_grad=kdn.info.requires_grad
@@ -326,24 +323,17 @@ class Asuta(torch.nn.Module):
             ee.record(stream)
             torch.cuda.synchronize(self.device)
             print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
-        #     if i >= 4:
-        #         print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
-                
+            
         # for l in self.fwd_fct_list:
             # self._exec(l)
 
-        
-        # print(f'storage: {self.storage.ld}')
-        # torch.cuda.empty_cache()
         return self.storage.get_val(self.graph.output.main_target)
     
     
     def backward(self):
         # execute the generated function list (backward)
         for i, l in enumerate(self.bwd_fct_list):
-            # print(f'tensor __16_input0: {self.storage.ld["___16_input0"].grad_fn}')
             self._exec(l)
-            # print(f'backward: {i}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_reserved()}')
+
         # for l in self.bwd_fct_list:
             # self._exec(l)
-        # torch.cuda.empty_cache()
