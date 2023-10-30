@@ -20,7 +20,6 @@ class Graph:
         )
         self.graph_list = self.rkgb_results.K_graph_list
         self.dict_constants = self.rkgb_results.K_graph_list[0].dict_constants
-        self.eq_classes = self.rkgb_results.equivalent_classes
         self.init_code = ast_to_str(self.graph_list[0].init_code)
         self.output = self.graph_list[-1].output_kdn_data
 

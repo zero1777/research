@@ -79,16 +79,12 @@ def fct_run_forward_with_grad(storage, code, no_save_list=[]):
             fct_get_pack(storage, no_save_list), fct_get_unpack(storage)
         ):
             exec(code, storage.gd, storage.ld)
-        # exec(code, storage.gd, storage.ld)
 
     return fct
 
 
-def fct_run_inplace(storage, tensor_name, inplace_code):
+def fct_run_inplace(storage, inplace_code):
     def fct():
-        # ld = {tensor_name: storage.ld[f"_{tensor_name}"]}
-        # code = f"{tensor_name} = x\n{inplace_code}"
-        # print(tensor_name, inplace_code)
         exec(inplace_code, storage.gd, storage.ld)
 
     return fct
@@ -97,7 +93,6 @@ def fct_run_inplace(storage, tensor_name, inplace_code):
 def fct_run_detach(storage, tensor_name):
     def fct():
         storage.ld[tensor_name].data = storage.ld[f"_{tensor_name}"].data
-        # print(f'detach {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
 
     return fct
 
@@ -118,7 +113,6 @@ def fct_requires_grad(storage, tensor_name):
 
 def fct_run_backward(storage, tensor_name, retain_graph):
     def fct():
-        # print(f'backward {tensor_name}: {storage.ld[f"{tensor_name}"]}')
         storage.ld[f"_{tensor_name}"].backward(
             storage.ld[tensor_name].grad, retain_graph=retain_graph
         )
@@ -150,7 +144,6 @@ def fct_generate_fake_data(storage, tensor_name):
         )
         x = m.expand(np.prod(storage.shapes[tensor_name]))
         storage.ld[tensor_name].data = x.view(storage.shapes[tensor_name])
-        # print(f'generate fake data: {tensor_name}: {storage.ld[tensor_name]}')
 
     return fct
 
@@ -160,7 +153,6 @@ def fct_del_tensor_data(storage, tensor_name):
         storage.ld[tensor_name].data = torch.empty(
             0, device=storage.gd["device"]
         )
-        # print(f'del tensor {tensor_name}: {storage.ld[tensor_name]}')
 
     return fct
 
@@ -188,7 +180,6 @@ def fct_del_var(storage, var_name):
     return fct
 
 def fct_swapin(storage, tensor_name, swap_stream):
-    # @torch.no_grad() 
     def fct():
         with torch.cuda.stream(swap_stream):
             storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=True)
