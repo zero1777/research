@@ -8,9 +8,9 @@ import torch.nn.functional as F
 import torchvision.models as models
 from copy import deepcopy
 
-from graph import Graph
+from graph import Graph, C_node, D_node, NodeSchedule
 from utils import *
-from node import C_node, D_node, NodeSchedule
+# from node import C_node, D_node, NodeSchedule
 from compiler import Compiler, RngState, Storage
 from asuta import Asuta
 
@@ -42,8 +42,8 @@ model = SimpleCNN().to(device)
 sample = [torch.rand(1, 3, 32, 32).to(device)]
 
 
-model = models.resnet50().to(device)
-sample = [torch.rand(5, 3, 224, 224).to(device)]
+# model = models.resnet50().to(device)
+# sample = [torch.rand(5, 3, 224, 224).to(device)]
 
 # model = models.vgg16().to(device)
 # sample = [torch.rand(5, 3, 224, 224).to(device)]
