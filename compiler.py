@@ -4,6 +4,9 @@ import numpy as np
 from node import D_node 
 
 # region Define Register Hooks
+
+# TODO: modify fct_get_pack / fct_get_unpack functions to simply return x
+
 def fct_get_pack(storage, no_save_list, sanity_check=False):
     # no_save_list contains a list of names
     def pack(x):
@@ -179,36 +182,24 @@ def fct_del_var(storage, var_name):
 
     return fct
 
+# TODO: Currently, the swapin and swapout functions are synchronous. Hope to make them asynchronous in the future
 def fct_swapin(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
-            storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=True)
+            storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=False)
             storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
-            # storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
         torch.cuda.synchronize()
-        # print(f'swap in tensor {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
 
     return fct
 
 def fct_swapout(storage, tensor_name, swap_stream):
     def fct():
-        # print(f'swap out tensor1 {tensor_name}: {storage.ld[f"_{tensor_name}"]}')
-        # print(f'swap out tensor {tensor_name} data 1: {storage.ld[tensor_name].data}')
-        # print(f'swap out tensor {tensor_name} grad 1: {storage.ld[tensor_name].grad}')
         with torch.cuda.stream(swap_stream):
-            # a = torch.empty(storage.ld[tensor_name].size(), device="cpu")
-            # a.copy_(storage.ld[tensor_name], non_blocking=False)
-            # a = a.detach().requires_grad_(True)
-            # storage.cpu_ld[tensor_name] = storage.ld[tensor_name]
             storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu")
-            storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=True)
+            storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
             storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
         torch.cuda.synchronize()
-        # print(f'swap out tensor {tensor_name} data 2: {storage.ld[tensor_name].data}')
-        # print(f'swap out tensor {tensor_name} grad 2: {storage.ld[tensor_name].grad}')
-        # print(f'swap out tensor {tensor_name} data 3: {storage.cpu_ld[tensor_name].data}')
-        # print(f'swap out tensor {tensor_name} grad 3: {storage.cpu_ld[tensor_name].grad}')
-            
+
     return fct
 
     # endregion
@@ -246,7 +237,6 @@ class Storage:
         self.dtypes = dict()
         self.rng_state = RngState() # rng (random number generator), used for producing same random numbers
         self.cpu_ld = {}
-        # print(f'RK_Storage: gd: {self.gd}')
 
     def add_val(self, val, x):
         self.ld[val] = x
@@ -274,24 +264,27 @@ class Compiler:
         self.device = self.storage.gd["device"]
         self.swap_stream = torch.cuda.Stream()
 
-    def _is_alive(self, op, kdn_name):
-        if kdn_name in self.op_sched.kdn_names:
-            return kdn_name in op.alive_datas
+    def is_alive(self, op, kdn_name):
         # if kdn_name in self.op_sched.kdn_names:
         #     return self.op_sched.alive_list[i][
         #         self.op_sched.kdn_names.index(kdn_name)
         #     ]
 
+        if kdn_name in self.op_sched.kdn_names:
+            return kdn_name in op.alive_datas
         else:
             return True
 
+    # TODO: find_next_idx function deleted
     def find_next_idx(l, target, i):
         return i + l[i:].index(target)
 
-    def get_fwd(self, op, i):
+    def compile_fwd(self, op, i):
         if "loss" in op.main_target:
             return [fct_run_forward_no_grad(self.storage, "")]
-        rec = op.name in self.op_sched.op_name_list[:i]
+
+        not_first = op.name in self.op_sched.op_name_list[:i]
+
         if not op.proxy:
             last_before_bwd = False
         else:
@@ -301,28 +294,27 @@ class Compiler:
             last_before_bwd = not (
                 op.name in self.op_sched.op_name_list[i + 1 : next_bwd_idx]
             )
-        l = []
-
-        # print(f'op.name: {op.name}, {last_before_bwd}')
+        r = []
 
         if op.is_rand:
-            if not rec:
-                l.append(fct_get_rng_state(self.storage, op.name))
+            if not_first:
+                r.append(fct_restore_rng_state(self.storage, op.name))
             else:
-                l.append(fct_restore_rng_state(self.storage, op.name))
+                r.append(fct_get_rng_state(self.storage, op.name))
 
         # compile inplace code
         inplace_code = make_str_list_assign(
-            op.inplace_code, force_special_kwargs=rec
+            op.inplace_code, force_special_kwargs=not_first
         )
+
         # compile body code
         body_code = ""
         for bc in op.body_code:
             suffix = ""
-            if rec and (bc[0] in op.tensor_targets):
+            if not_first and (bc[0] in op.tensor_targets):
                 suffix = ".data"
             body_code += (
-                make_str_assign(bc, suffix=suffix, force_special_kwargs=rec)
+                make_str_assign(bc, suffix=suffix, force_special_kwargs=not_first)
                 + "\n"
             )
 
@@ -330,103 +322,102 @@ class Compiler:
         suffix = ""
         main_code = (
             make_str_assign(
-                op.main_code, suffix=suffix, force_special_kwargs=rec
+                op.main_code, suffix=suffix, force_special_kwargs=not_first
             )
             + "\n"
         )
         main_code = main_code.replace(op.main_target, f"_{op.main_target}")
 
+        # TODO: last_before_bwd needs to be True to avoid forward pass being executed in no_grad
         last_before_bwd = True
 
         if not last_before_bwd:
-
-            # inplace_code = inplace_code.replace(
-            #     op.main_target, f"_{op.main_target}"
-            # )
-
             for target in op.tensor_targets:
                 inplace_code = inplace_code.replace(target, "_" + target)
-            l.append(
+            r.append(
                 fct_run_forward_no_grad(
                     self.storage, main_code.replace("self", "original_mod"),
                 )
             )
         else:
-            # forward will go through this path
+            # TODO: no_save_list needed ?
             no_save_list = []
             candidates = list(op.deps_global) + list(op.users_global)
             for kdn_name in candidates:
                 if kdn_name in self.op_sched.op_name_list[i:next_bwd_idx]:
                     no_save_list.append(kdn_name.split(" ")[0])
-                
-            # print(f'{op.name}, no_save_list: {no_save_list}')
 
             for target in op.tensor_targets:
                 inplace_code = inplace_code.replace(target, "_" + target)
 
-            l.append(
+            # run main code
+            r.append(
                 fct_run_forward_with_grad(
                     self.storage,
                     main_code.replace("self", "original_mod"),
                     no_save_list=no_save_list,
                 )
             )
-        l.append(
+
+        # run inplace code
+        r.append(
             fct_run_forward_with_grad(
                 self.storage, inplace_code.replace("self", "original_mod"),
             )
         )
-        l.append(fct_run_detach(self.storage, op.main_target))
-        l.append(
+        r.append(
+            fct_run_detach(
+                self.storage, op.main_target
+            )
+        )
+        # run body code
+        r.append(
             fct_run_forward_with_grad(
                 self.storage, body_code.replace("self", "original_mod")
             )
         )
-        # print(f'main_code: {main_code}')
 
         # get the shape of tensors
-        if not rec:
-            l.append(fct_get_shapes(self.storage, f"_{op.main_target}"))
+        if not not_first:
+            r.append(fct_get_shapes(self.storage, f"_{op.main_target}"))
             for target in op.tensor_targets:
-                l.append(fct_get_shapes(self.storage, target))
+                r.append(fct_get_shapes(self.storage, target))
         
-        return l
+        return r
 
-    def get_bwd(self, op, i):
-        rec = op.name in self.op_sched.op_name_list[:i]
+    def compile_bwd(self, op, i):
+        not_first = op.name in self.op_sched.op_name_list[:i]
         last = not (op.name in self.op_sched.op_name_list[i + 1 :])
+        # TODO: normally, the bwd operation only appears once in the schedule. Hence, not_first is always False and last is always True
 
-        # print(f'op.name: {op.name}, {last}')
-
-        l = []
-        l2 = []
+        r = []
+        r2 = []
 
         if op.is_rand:
-            if not rec:
-                l.append(fct_get_rng_state(self.storage, op.name))
+            if not_first:
+                r.append(fct_restore_rng_state(self.storage, op.name))
             else:
-                l.append(fct_restore_rng_state(self.storage, op.name))
+                r.append(fct_get_rng_state(self.storage, op.name))
 
         temporary_tensor_names = [
-            kdn_name.split(" ")[0]
+            kdn_name.split(" ")[0] 
             for kdn_name in op.deps_fake
-            if not self._is_alive(op, kdn_name)
+            if not self.is_alive(op, kdn_name)
         ]
-        # print(f'temp1: {op.main_target}: {temporary_tensor_names}')
+        
         if op.main_target in temporary_tensor_names:
             temporary_tensor_names.append(f"_{op.main_target}")
         for tensor_name in temporary_tensor_names:
-            l.append(fct_generate_fake_data(self.storage, tensor_name))
-            l2.append(fct_del_tensor_data(self.storage, tensor_name))
-        # print(f'temp2: {op.main_target}: {temporary_tensor_names}')
+            r.append(fct_generate_fake_data(self.storage, tensor_name))
+            r2.append(fct_del_tensor_data(self.storage, tensor_name))
 
-        if rec:
+        if not_first:
             prev_i = i - self.op_sched.op_name_list[:i][::-1].index(op.name) - 1
             input_names = []
             for kdn_name in op.users_global:
                 if f"del {kdn_name}" in self.op_sched.op_name_list[prev_i:i]:
                     input_names.append(kdn_name.split(" ")[0])
-            l.append(
+            r.append(
                 fct_run_backward_with_inputs(
                     self.storage,
                     op.main_target,
@@ -435,87 +426,68 @@ class Compiler:
                 )
             )
         else:
-            l.append(
+            r.append(
                 fct_run_backward(
                     self.storage, op.main_target, retain_graph=(not last)
                 )
             )
 
-        # print(f'op.name: {op.name}, {l + l2}')
+        return r + r2
 
-        return l + l2
-
-    def get_del_data(self, op, i):
-        l = []
-        l.append(fct_del_tensor_data(self.storage, op.main_target))
+    def compile_del_data(self, op):
+        r = []
+        r.append(fct_del_tensor_data(self.storage, op.main_target))
         if op.info is not None and op.info.requires_grad:
-            l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
+            r.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
         if op.includes_base:
-            l.append(fct_del_tensor_base(self.storage, op.main_target))
+            r.append(fct_del_tensor_base(self.storage, op.main_target))
         for v in op.tensor_targets:
-            l.append(fct_del_tensor_data(self.storage, v))
-            # print(f'op.name: {op.name}, {v}')
+            r.append(fct_del_tensor_data(self.storage, v))
         for v in op.container_targets:
-            l.append(fct_del_var(self.storage, v))
-        # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
+            r.append(fct_del_var(self.storage, v))
 
-        return l
+        return r
 
-    def get_del_grad(self, op, i):
-        return [fct_del_tensor_grad(self.storage, op.main_target)]
+    def compile_del_grad(self, op):
+        r = []
+        r.append(fct_del_tensor_grad(self.storage, op.main_target))
 
-    def get_del_data_swapin(self, op, i):
-        return [fct_swapin(self.storage, op.main_target, self.swap_stream)]
+        return r
 
-    def get_del_data_swapout(self, op, i):
-        # return [fct_swapout(self.storage, op.main_target, self.swap_stream)]
-        l = []
-        # print(f'op: {op.main_target}')
-        l.append(fct_swapout(self.storage, op.main_target, self.swap_stream))
-        l.append(fct_del_tensor_data(self.storage, op.main_target))
-        l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
-        # if op.info is not None and op.info.requires_grad:
-        #     l.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
-        # if op.includes_base:
-        #     l.append(fct_del_tensor_base(self.storage, op.main_target))
-        # for v in op.tensor_targets:
-        #     l.append(fct_del_tensor_data(self.storage, v))
-        # for v in op.container_targets:
-        #     l.append(fct_del_var(self.storage, v))
+    def compile_swapin(self, op):
+        r = []
+        r.append(fct_swapin(self.storage, op.main_target, self.swap_stream))
+
+        return r
+
+    def compile_swapout(self, op):
+        r = []
+        r.append(fct_swapout(self.storage, op.main_target, self.swap_stream))
+        r.append(fct_del_tensor_data(self.storage, op.main_target))
+        r.append(fct_del_tensor_data(self.storage, f"_{op.main_target}"))
         
-        print("swapout")
-        # l.append(fct_del_var(self.storage, f"_{op.main_target}"))
-
-
-        return l
+        return r
 
     def compile(self, op_sched):
         self.op_sched = op_sched
+        # TODO: op_sched renamed
 
         fct_list = []
         for i, op in enumerate(op_sched.op_list):
-            # print(f'op.name: {op.name}')
-            # if "swapin" in op.name:
-            #     fct_list.append(self.get_del_data_swapin(op, i))
-            # elif "swapout" in op.name:
-            #     fct_list.append(self.get_del_data_swapout(op, i))
             if "fwd" in op.name:
                 if op.is_swap:
-                    fct_list.append(self.get_del_data_swapin(op, i))
+                    fct_list.append(self.compile_swapin(op))
                 else:
-                    fct_list.append(self.get_fwd(op, i))
+                    fct_list.append(self.compile_fwd(op, i))
             elif "bwd" in op.name:
-                fct_list.append(self.get_bwd(op, i))
+                fct_list.append(self.compile_bwd(op, i))
             elif "data" in op.name:
                 if op.is_swap:
-                    # print(f'op.name: {op.name}')
-                    fct_list.append(self.get_del_data_swapout(op, i))
+                    fct_list.append(self.compile_swapout(op))
                 else:
-                    fct_list.append(self.get_del_data(op, i))
-                # fct_list.append([])
+                    fct_list.append(self.compile_del_data(op))
             elif "grad" in op.name:
-                # fct_list.append([])
-                fct_list.append(self.get_del_grad(op, i))
+                fct_list.append(self.compile_del_grad(op))
             else:
                 fct_list.append([])
 
