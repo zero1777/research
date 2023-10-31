@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 from copy import deepcopy
+import torch.onnx
 
 from graph import Graph, C_op, D_op, OpSchedule
 from utils import *
@@ -41,7 +42,6 @@ device = torch.device("cuda")
 model = SimpleCNN().to(device)
 sample = [torch.rand(1, 3, 32, 32).to(device)]
 
-
 # model = models.resnet50().to(device)
 # sample = [torch.rand(5, 3, 224, 224).to(device)]
 
@@ -53,15 +53,25 @@ sample = [torch.rand(1, 3, 32, 32).to(device)]
 
 print("---  Doing rematerialization with Asuta ----")
 
-# compare(Asuta(model, sample), model, sample)
-optimizer = torch.optim.Adam(model.parameters())
+# optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
+for_test.eval()
+# train_test(for_test, sample, optimizer)
+
 # torch.cuda.empty_cache()
 # print(torch.cuda.memory_allocated())
 # print(torch.cuda.memory_reserved())
 
-train_test(for_test, sample, optimizer)
 # normal_model_train_test(model, sample)
 # y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')
+
+torch.onnx.export(
+    for_test,
+    torch.rand(1, 3, 32, 32).to(device),
+    "simple_cnn.onnx",
+    verbose=True,
+    input_names=["input"],
+    output_names=["output"],
+)

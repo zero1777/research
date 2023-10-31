@@ -28,7 +28,7 @@ class Asuta(torch.nn.Module):
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
         self.num_evict = 3
         self.construct_op_list()
-        self.construct_op_list_v2()
+        # self.construct_op_list_v2()
         self.compile_function()
 
     def construct_op_list(self):
@@ -134,7 +134,7 @@ class Asuta(torch.nn.Module):
         self.logger.info(f'compute_overhead: {self.compute_overhead}')
         self.logger.info(f'total_overhead: {self.total_overhead}')
 
-        self.select_eviction_list()
+        # self.select_eviction_list()
 
     def select_eviction_list(self):
         list_kdn = []
@@ -266,10 +266,10 @@ class Asuta(torch.nn.Module):
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)
-        # self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
-        # loss_idx = len(self.fwd_op_list)
-        self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
-        loss_idx = len(self.fwd_op_list_v2)
+        self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        loss_idx = len(self.fwd_op_list)
+        # self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        # loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
@@ -303,18 +303,18 @@ class Asuta(torch.nn.Module):
             
 
         # execute the generated function list (forward)
-        stream = torch.cuda.current_stream(self.device)
-        for i, l in enumerate(self.fwd_fct_list):
-            se = torch.cuda.Event(enable_timing=True)
-            ee = torch.cuda.Event(enable_timing=True)
-            se.record(stream)
-            self._exec(l)
-            ee.record(stream)
-            torch.cuda.synchronize(self.device)
-            print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
+        # stream = torch.cuda.current_stream(self.device)
+        # for i, l in enumerate(self.fwd_fct_list):
+        #     se = torch.cuda.Event(enable_timing=True)
+        #     ee = torch.cuda.Event(enable_timing=True)
+        #     se.record(stream)
+        #     self._exec(l)
+        #     ee.record(stream)
+        #     torch.cuda.synchronize(self.device)
+        #     print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
             
-        # for l in self.fwd_fct_list:
-            # self._exec(l)
+        for l in self.fwd_fct_list:
+            self._exec(l)
 
         return self.storage.get_val(self.graph.output.main_target)
     
