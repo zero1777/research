@@ -21,15 +21,16 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        self.eviction_list = ["__16_input0 data", "__7_input data"]
+        # self.eviction_list = ["__16_input0 data", "__7_input data"]
         self.eviction_list = []
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
+        self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
+        self.num_evict = 3
         self.construct_op_list()
         self.construct_op_list_v2()
         self.compile_function()
 
-        
     def construct_op_list(self):
         self.tmp_fwd_op_list = []
         self.tmp_bwd_op_list = []
@@ -118,14 +119,44 @@ class Asuta(torch.nn.Module):
 
         self.total_overhead = 0
         self.data_overhead = {}
+        self.compute_overhead = {}
         for kcn in list_kcn:
-            self.data_overhead[kcn.name] = kcn.time
+            if "bwd" not in kcn.name and "loss" not in kcn.name:
+                kdn_name = kcn.name.replace("fwd_", "")
+                kdn_name += " data"
+                self.data_overhead[kdn_name] = kcn.time
+            self.compute_overhead[kcn.name] = kcn.time
             self.total_overhead += kcn.time
         
         self.logger.info(f'data_memory: {self.data_memory}')
         self.logger.info(f'total_memory: {self.total_memory}')
         self.logger.info(f'data_overhead: {self.data_overhead}')
+        self.logger.info(f'compute_overhead: {self.compute_overhead}')
         self.logger.info(f'total_overhead: {self.total_overhead}')
+
+        self.select_eviction_list()
+
+    def select_eviction_list(self):
+        list_kdn = []
+        for kg in self.graph.graph_list:
+            list_kdn += kg.list_kdn
+
+        self.recompute_cost = {}
+        self.swap_cost = {}
+        for kdn in list_kdn:
+            if "grad" in kdn.name or "phantoms" in kdn.name:
+                continue
+            self.recompute_cost[kdn.name] = self.data_memory[kdn.name] / self.data_overhead[kdn.name]
+            self.swap_cost[kdn.name] = self.data_memory[kdn.name] / self.pcie_bw
+
+        self.sorted_rcost = dict(sorted(self.recompute_cost.items(), key=lambda item: item[1], reverse=True))
+
+        self.logger.info(f'recompute_cost: {self.recompute_cost}')
+        self.logger.info(f'swap_cost: {self.swap_cost}')
+        self.logger.info(f'sorted_rcost: {self.sorted_rcost}')
+
+        self.eviction_list = list(self.sorted_rcost.keys())[:self.num_evict]
+        self.logger.info(f'eviction_list: {self.eviction_list}')
         
     def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
@@ -181,9 +212,9 @@ class Asuta(torch.nn.Module):
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
             # parent_op.name = parent_op.name + "_swapin"
-            C_op = C_op(parent_op, alive_datas=alive_datas.copy())
-            C_op.is_swap = True
-            self.bwd_op_list_v2.append(C_op)
+            cnode = C_op(parent_op, alive_datas=alive_datas.copy())
+            cnode.is_swap = True
+            self.bwd_op_list_v2.append(cnode)
             del evict_list[kdn_name]
 
         # backward list
