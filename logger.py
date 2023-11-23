@@ -11,10 +11,11 @@ class Logger():
         self.print_log = print_log
 
     def info(self, msg):
-        self.logger.info(msg)
-        if self.print_log:
-            print(msg)
+        # self.logger.info(msg)
+        # if self.print_log:
+        #     print(msg)
+        pass
             
     def debug(self, msg):
-        # print(msg)
+        print(msg)
         pass

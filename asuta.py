@@ -5,6 +5,7 @@ from rkgb.main import make_inputs
 import torch
 import torch.nn as nn
 from copy import deepcopy
+import time
 
 from graph import Graph
 from utils import *
@@ -21,14 +22,14 @@ class Asuta(torch.nn.Module):
         super().__init__()
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
-        # self.eviction_list = ["__16_input0 data", "__7_input data"]
         self.eviction_list = []
+        self.eviction_list = ["__7_input data", "__16_input0 data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
         self.num_evict = 3
         self.construct_op_list()
-        # self.construct_op_list_v2()
+        self.construct_op_list_v2()
         self.compile_function()
 
     def construct_op_list(self):
@@ -195,8 +196,7 @@ class Asuta(torch.nn.Module):
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_op(self.kdn_dict[deps_name])
-                            # dnode.name = dnode.name + "_swapout"
-                            dnode.is_swap = True
+                            dnode.is_swap = False
                             self.fwd_op_list_v2.append(dnode)
 
                 for kdn_name in op.users_global:
@@ -211,9 +211,8 @@ class Asuta(torch.nn.Module):
             for deps in parent_op.deps_global:
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
-            # parent_op.name = parent_op.name + "_swapin"
             cnode = C_op(parent_op, alive_datas=alive_datas.copy())
-            cnode.is_swap = True
+            cnode.is_swap = False
             self.bwd_op_list_v2.append(cnode)
             del evict_list[kdn_name]
 
@@ -266,10 +265,10 @@ class Asuta(torch.nn.Module):
 
     def compile_function(self):
         self.compiler = Compiler(self.storage)
-        self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
-        loss_idx = len(self.fwd_op_list)
-        # self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
-        # loss_idx = len(self.fwd_op_list_v2)
+        # self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        # loss_idx = len(self.fwd_op_list)
+        self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
@@ -286,12 +285,22 @@ class Asuta(torch.nn.Module):
             return self.graph.model(*args, **kwargs)
         
         # set input data
+        # stream = torch.cuda.current_stream(self.device)
+        # se = torch.cuda.Event(enable_timing=True)
         model_inputs = make_inputs(self.graph.model, args, kwargs)
+        # ee = torch.cuda.Event(enable_timing=True)
+        # se.record(stream)
+        # ee.record(stream)
+        # print(f'forward: {se.elapsed_time(ee)/1000}')
         for k, v in model_inputs.items():
             self.storage.add_val(k, v)
         
         # execute init code
         exec(self.graph.init_code, self.storage.gd, self.storage.ld)
+        # start_time = time.time()
+        # end_time = time.time()
+        # training_time = end_time - start_time
+        # print(f'training_time (sec): {training_time}')
 
         for kg in self.graph.graph_list:
             for kdn in kg.list_kdn:
@@ -313,8 +322,16 @@ class Asuta(torch.nn.Module):
         #     torch.cuda.synchronize(self.device)
         #     print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
             
-        for l in self.fwd_fct_list:
+        # stream = torch.cuda.current_stream(self.device)
+        # se = torch.cuda.Event(enable_timing=True)
+        # ee = torch.cuda.Event(enable_timing=True)
+        # se.record(stream)
+        for l in self.fwd_fct_list:  
             self._exec(l)
+        # ee.record(stream)
+        # torch.cuda.synchronize(self.device)
+        # print(f'forward: {se.elapsed_time(ee)/1000}')
+        
 
         return self.storage.get_val(self.graph.output.main_target)
     

@@ -42,8 +42,11 @@ device = torch.device("cuda")
 model = SimpleCNN().to(device)
 sample = [torch.rand(1, 3, 32, 32).to(device)]
 
-# model = models.resnet50().to(device)
-# sample = [torch.rand(5, 3, 224, 224).to(device)]
+model = models.resnet50().to(device)
+sample = [torch.rand(5, 3, 224, 224).to(device)]
+
+# model = models.resnet152().to(device)
+# sample = [torch.rand(50, 3, 224, 224).to(device)]
 
 # model = models.vgg16().to(device)
 # sample = [torch.rand(5, 3, 224, 224).to(device)]
@@ -55,23 +58,22 @@ print("---  Doing rematerialization with Asuta ----")
 
 # optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
-for_test.eval()
-# train_test(for_test, sample, optimizer)
+train_test(for_test, sample, optimizer)
 
 # torch.cuda.empty_cache()
 # print(torch.cuda.memory_allocated())
 # print(torch.cuda.memory_reserved())
 
-# normal_model_train_test(model, sample)
+normal_model_train_test(model, sample)
 # y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')
 
-torch.onnx.export(
-    for_test,
-    torch.rand(1, 3, 32, 32).to(device),
-    "simple_cnn.onnx",
-    verbose=True,
-    input_names=["input"],
-    output_names=["output"],
-)
+# torch.onnx.export(
+#     for_test,
+#     torch.rand(1, 3, 32, 32).to(device),
+#     "simple_cnn.onnx",
+#     verbose=True,
+#     input_names=["input"],
+#     output_names=["output"],
+# )
