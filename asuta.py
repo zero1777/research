@@ -1,15 +1,16 @@
 import rkgb.src as rkgb
 import rkgb.src.utils as rkgb_utils
 from rkgb.main import make_inputs
+import ast
 
 import torch
 import torch.nn as nn
 from copy import deepcopy
 import time
 
-from graph import Graph
+from graph import Graph, C_op, D_op, OpSchedule
 from utils import *
-from node import C_op, D_op, OpSchedule
+# from node import C_op, D_op, OpSchedule
 from compiler import Compiler, RngState, Storage
 from logger import Logger
 
@@ -23,7 +24,7 @@ class Asuta(torch.nn.Module):
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.eviction_list = []
-        self.eviction_list = ["__7_input data", "__16_input0 data"]
+        # self.eviction_list = ["__7_input data", "__16_input0 data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
@@ -264,13 +265,22 @@ class Asuta(torch.nn.Module):
         )
 
     def compile_function(self):
+        self.fwd_code = []
+        self.fwd_compile_code = []
+
         self.compiler = Compiler(self.storage)
-        # self.fct_list = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
-        # loss_idx = len(self.fwd_op_list)
-        self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
-        loss_idx = len(self.fwd_op_list_v2)
+        self.fct_list, self.fwd_code = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        loss_idx = len(self.fwd_op_list)
+        # self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        # loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
+
+        for code_list in self.fwd_code:
+            # print(code_list)
+            self.fwd_compile_code.append(
+                compile(ast.parse("\n".join(code_list)), "", "exec")
+            )
 
         self.logger.debug(f'fwd_fct: {[fct for fct in self.fwd_fct_list]}')
         self.logger.debug(f'bwd_fct: {[fct for fct in self.bwd_fct_list]}')
@@ -278,7 +288,7 @@ class Asuta(torch.nn.Module):
     def _exec(self, fct_list):
         for fct in fct_list:
             fct()
-    
+
     def forward(self, *args, **kwargs):
         if not self.training:
             self.graph.model.eval()
@@ -326,11 +336,14 @@ class Asuta(torch.nn.Module):
         # se = torch.cuda.Event(enable_timing=True)
         # ee = torch.cuda.Event(enable_timing=True)
         # se.record(stream)
-        for l in self.fwd_fct_list:  
-            self._exec(l)
+        # for l in self.fwd_fct_list:  
+        #     self._exec(l)
         # ee.record(stream)
         # torch.cuda.synchronize(self.device)
         # print(f'forward: {se.elapsed_time(ee)/1000}')
+
+        for code in self.fwd_compile_code:
+            exec(code, self.storage.gd, self.storage.ld)
         
 
         return self.storage.get_val(self.graph.output.main_target)

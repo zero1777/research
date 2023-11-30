@@ -17,5 +17,5 @@ class Logger():
         pass
             
     def debug(self, msg):
-        print(msg)
+        # print(msg)
         pass

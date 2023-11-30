@@ -41,6 +41,8 @@ class C_op: # computation node
         self.is_rand = kcn.is_rand
         self.is_swap = False
         self.proxy = False
+        self.kcn = kcn
+        self.phantom_names = kcn.phantom_names
         for kdn in kcn.users:
             if kdn.kdn_type != "data":
                 continue
