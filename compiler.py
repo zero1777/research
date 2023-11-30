@@ -224,15 +224,13 @@ class Storage:
         self.gd = {
             **globals(),
             **dict_constants,
-            # "original_mod": nn_mod,
-            "self": nn_mod,
+            "original_mod": nn_mod,
             "device": device,
             "torch": torch,
             "meta": torch.ones(1).to(device),
             "cmeta": torch.view_as_complex(torch.ones(2)).to(device),
         }
         self.ld = {}
-        self.gd["shapes"] = {}
         self.shapes = dict()
         self.dtypes = dict()
         self.rng_state = RngState() # rng (random number generator), used for producing same random numbers
@@ -470,92 +468,17 @@ class Compiler:
         
         return r
 
-    def compile_fwd2(self, op, i):
-        not_first = op.name in self.op_sched.op_name_list[:i]
-
-        if not op.proxy:
-            last_before_bwd = False
-        else:
-            next_bwd_idx = i + self.op_sched.op_name_list[i:].index(
-                op.name.replace("fwd", "bwd")
-            )
-            last_before_bwd = not (
-                op.name in self.op_sched.op_name_list[i + 1 : next_bwd_idx]
-            )
-
-        r = []
-        
-        suffix = ""
-        if not_first and not op.proxy and "loss" not in op.name:
-            suffix = ".data"
-        
-        code = (
-            make_str_assign(
-                op.main_code, suffix=suffix, force_special_kwargs=not_first
-            )
-            + "\n"
-        )
-
-        code += (
-            make_str_list_assign(
-                op.inplace_code, force_special_kwargs=not_first
-            )
-            + "\n"
-        )
-
-        if op.proxy:
-            mt = op.main_target
-            for target in op.tensor_targets:
-                code = code.replace(target, "_" + target)
-            if not_first:
-                code += f"{mt}.data = _{mt}.data;\n"
-            else:
-                code += (
-                    f"{mt} = _{mt}.detach();{mt}.requires_grad_();\n"
-                )
-
-        # compile body code
-        for bc in op.body_code:
-            suffix = ""
-            if not_first and (bc[0] in op.tensor_targets):
-                suffix = ".data"
-            code += (
-                make_str_assign(bc, suffix=suffix, force_special_kwargs=not_first)
-                + "\n"
-            )
-
-        # get the shape of tensors
-        if not not_first:
-            for target in op.tensor_targets:
-                if "loss" not in target:
-                    code += f"shapes['{target}'] = {target}.shape;"
-            for phantom_name in op.phantom_names:
-                code += (
-                    f"shapes['{phantom_name}'] = _{phantom_name}.shape;"
-                )
-
-        # rand
-        if op.is_rand:
-            code = f"rng_state.get('{op.name}');rng_state.restore('{op.name}')\n{code}"
-
-        # print(f'{i}: {op.name}')
-        # print(code)
-
-        return [code]
-
     def compile(self, op_sched):
         self.op_sched = op_sched
         # TODO: op_sched renamed
 
         fct_list = []
-        fwd_code = []
         for i, op in enumerate(op_sched.op_list):
             if "fwd" in op.name:
                 if op.is_swap:
                     fct_list.append(self.compile_swapin(op))
                 else:
                     fct_list.append(self.compile_fwd(op, i))
-                    fwd_code.append(self.compile_fwd2(op, i))
             elif "bwd" in op.name:
                 fct_list.append(self.compile_bwd(op, i))
             elif "data" in op.name:
@@ -568,7 +491,5 @@ class Compiler:
             else:
                 fct_list.append([])
 
-        print(f'fwd_code: {fwd_code}')
-
-        return fct_list, fwd_code
+        return fct_list
 

@@ -91,8 +91,7 @@ for epoch in range(1):  # loop over the dataset multiple times
         # outputs = net(inputs)
         outputs = new_net(inputs)
 
-        # loss = criterion(outputs, labels)
-        loss = torch.mean(outputs)
+        loss = criterion(outputs, labels)
         loss.backward()
 
         new_net.backward()

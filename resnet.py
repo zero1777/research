@@ -32,10 +32,10 @@ for _ in range(repeat):
 
     loss = criterion(outputs, torch.tensor([1, 2, 3, 4, 5]).to(device))
     loss.backward()
-    # .backward() 
+    new_net.backward()
     optimizer.step()
 
-    # running_loss += loss.item()
-    # print(f'loss: {running_loss}')
-    # running_loss = 0.0
+    running_loss += loss.item()
+    print(f'loss: {running_loss}')
+    running_loss = 0.0
     
