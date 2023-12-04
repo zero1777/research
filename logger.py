@@ -13,7 +13,7 @@ class Logger():
     def info(self, msg):
         # self.logger.info(msg)
         # if self.print_log:
-        #     print(msg)
+        print(msg)
         pass
             
     def debug(self, msg):

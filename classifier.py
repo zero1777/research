@@ -8,7 +8,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-batch_size = 4
+batch_size = 128
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
@@ -77,7 +77,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 for epoch in range(1):  # loop over the dataset multiple times
 
     running_loss = 0.0
-    start_event.record(stream)
+    # start_event.record(stream)
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
@@ -87,15 +87,20 @@ for epoch in range(1):  # loop over the dataset multiple times
         # zero the parameter gradients
         optimizer.zero_grad()
 
+        start = time.time()
+
         # forward + backward + optimize
-        # outputs = net(inputs)
-        outputs = new_net(inputs)
+        outputs = net(inputs)
+        # outputs = new_net(inputs)
 
         loss = criterion(outputs, labels)
         loss.backward()
 
-        new_net.backward()
+        # new_net.backward()
         optimizer.step()
+
+        end = time.time()
+        print('training_time (sec):', end - start)
 
         # print statistics
         running_loss += loss.item()
@@ -103,9 +108,9 @@ for epoch in range(1):  # loop over the dataset multiple times
             print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
             running_loss = 0.0
 
-    end_event.record(stream)
-    torch.cuda.synchronize(device)
-    training_time = start_event.elapsed_time(end_event)
-    print(f'training_time (sec): {training_time/1000}')
+    # end_event.record(stream)
+    # torch.cuda.synchronize(device)
+    # training_time = start_event.elapsed_time(end_event)
+    # print(f'training_time (sec): {training_time/1000}')
 
 print('Finished Training')
