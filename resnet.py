@@ -10,8 +10,8 @@ from asuta import Asuta
 
 device = torch.device("cuda")
 
-net = models.resnet50().to(device)
-sample = [torch.rand(16, 3, 224, 224).to(device)]
+net = models.resnet101().to(device)
+sample = [torch.rand(64, 3, 224, 224).to(device)]
 
 new_net  = Asuta(net, sample)
 criterion = nn.CrossEntropyLoss()

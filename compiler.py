@@ -194,9 +194,10 @@ def fct_swapin(storage, tensor_name, swap_stream):
 def fct_swapout(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
-            storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu")
+            # if tensor_name not in storage.cpu_ld.keys():
+            storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu", pin_memory=True)
             storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
-            storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
+            storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach()
 
     return fct
 
