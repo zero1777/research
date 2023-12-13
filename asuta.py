@@ -79,6 +79,7 @@ class Asuta(torch.nn.Module):
                         if users[deps.name] == 0:
                             alive_datas.remove(deps.name)
                             op_list.append(D_op(deps))
+                        
         
             loss_idx = 0
             for i, op in enumerate(op_list):
@@ -95,6 +96,7 @@ class Asuta(torch.nn.Module):
 
         self.logger.debug(f'fwd_op: {[op.name for op in self.fwd_op_list]}')
         self.logger.debug(f'bwd_op: {[op.name for op in self.bwd_op_list]}')
+        print(f'bwd_op: {[op for op in self.fwd_op_list]}')
 
         list_kdn = []
         for kg in self.graph.graph_list:
