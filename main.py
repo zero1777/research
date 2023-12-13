@@ -58,6 +58,7 @@ print("---  Doing rematerialization with Asuta ----")
 
 # optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
+# compare(for_test, model, sample)
 # train_test(for_test, sample, optimizer)
 
 # torch.cuda.empty_cache()
@@ -65,7 +66,7 @@ for_test = Asuta(model, sample)
 # print(torch.cuda.memory_reserved())
 
 # normal_model_train_test(model, sample)
-y = for_test(*sample)
+# y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')
 

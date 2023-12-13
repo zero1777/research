@@ -542,6 +542,102 @@ class Compiler:
         # print(code)
 
         return [code]
+    
+    def _generate_fake_data(self, kdn):
+        # return code for generate the target fake tensor (only for data/grad)
+        prep_code = ""
+        after_code = ""
+        mt = kdn
+
+        target_tensor = f"metensor.clone().expand(np.prod(shapes['{mt}']))"
+        prep_code += f"{mt}.data = {target_tensor}.view(shapes['{mt}']);"
+
+        # for v in kdn.tensor_targets:
+        #     after_code += f"{v}.data = torch.empty(0,device=device); "
+
+        # if is_self:
+        prep_code += (
+            f"_{mt}.data = {target_tensor}.view(shapes['{mt}']);"
+        )
+        after_code += f"_{mt}.data = torch.empty(0,device=device);"
+
+        return prep_code, after_code
+
+    def compile_bwd2(self, op, i):
+        mt = op.main_target
+        not_first = op.name in self.op_sched.op_name_list[:i]
+        last = not (op.name in self.op_sched.op_name_list[i + 1 :])
+        
+        prep_code = ""
+        after_code = ""
+
+        print(f'type: {op.type}')
+        
+        for kdn in op.deps_fake:
+            if (
+                not self.is_alive(op, kdn)
+                # or op_sched.input_size[0] in kdn.name
+            ):
+                print(f'type: {kdn}')
+                fake_code = self._generate_fake_data(kdn)
+                prep_code += fake_code[0]
+                after_code += fake_code[1]
+                
+        if not_first:
+            prev_i = i - self.op_sched.op_list[:i][::-1].index(op) - 1
+            input_names = []
+            for kdn in op.users_global:
+                if f"del {kdn}" in self.op_sched.op_name_list[prev_i:i]:
+                    input_names += [kdn.main_target]  # kdn.tensor_targets
+
+            inputs = ",".join(input_names)
+            code = f"_{mt}.backward({mt}.grad, inputs=[{inputs}], retain_graph={not last})"
+        else:
+            code = f"_{mt}.backward({mt}.grad, retain_graph={not last})"
+        bwd_code = f"{prep_code}\n" f"{code}\n" f"{after_code}"
+        
+        if op.is_rand:
+            bwd_code = f"rng_state.get('{op.name}');rng_state.restore('{op.name}')\n{bwd_code}"
+            
+            
+        return [bwd_code]
+
+    def del_op2(op, i):
+        code = ""
+        if op.kdn_type == "data":
+            if (
+                op.info is not None
+                and op.info.requires_grad
+                # and _is_alive(op.name.replace("data", "phantoms"), i)
+                and op.proxy
+            ):
+                code += f"_{op.main_target}.data = torch.empty(0,device=device);"
+                for inp in op.inplace_targets:
+                    # code += f"_{inp}.data = torch.empty(0,device=device);"
+                    code += f"del _{inp};"
+
+                if op.includes_phantoms:
+                    code += f"del _{op.main_target};"
+
+                if op.includes_base:
+                    if op.proxy:
+                        code += f"_{op.main_target}._base.data = torch.empty(0,device=device);"
+                    else:
+                        code += f"{op.main_target}._base.data = torch.empty(0,device=device);"
+
+            for v in op.tensor_targets:
+                code += f"{v}.data = torch.empty(0,device=device); "
+
+            for v in op.container_targets:
+                code += f"del {v};"
+
+        if op.kdn_type == "grad":
+            code += f"{op.main_target}.grad = None;"
+            
+        if op.kdn_type == "phantoms":
+            code += f"del _{op.main_target};"
+            
+        return code
 
     def compile(self, op_sched):
         self.op_sched = op_sched
@@ -549,6 +645,8 @@ class Compiler:
 
         fct_list = []
         fwd_code = []
+        bwd_code = []
+
         for i, op in enumerate(op_sched.op_list):
             if "fwd" in op.name:
                 if op.is_swap:
@@ -558,6 +656,7 @@ class Compiler:
                     fwd_code.append(self.compile_fwd2(op, i))
             elif "bwd" in op.name:
                 fct_list.append(self.compile_bwd(op, i))
+                bwd_code.append(self.compile_bwd2(op, i))
             elif "data" in op.name:
                 if op.is_swap:
                     fct_list.append(self.compile_swapout(op))
@@ -568,7 +667,8 @@ class Compiler:
             else:
                 fct_list.append([])
 
-        print(f'fwd_code: {fwd_code}')
+        # print(f'fwd_code: {fwd_code}')
+        # print(f'bwd_code: {bwd_code}')
 
         return fct_list, fwd_code
 

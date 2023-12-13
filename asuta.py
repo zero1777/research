@@ -250,6 +250,7 @@ class Asuta(torch.nn.Module):
 
         self.logger.debug(f'fwd_op_list_evict: {[op.name for op in self.fwd_op_list_v2]}')
         self.logger.debug(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_v2]}')
+        print(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_v2]}')
             
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -336,14 +337,14 @@ class Asuta(torch.nn.Module):
         # se = torch.cuda.Event(enable_timing=True)
         # ee = torch.cuda.Event(enable_timing=True)
         # se.record(stream)
-        # for l in self.fwd_fct_list:  
-        #     self._exec(l)
+        for l in self.fwd_fct_list:  
+            self._exec(l)
         # ee.record(stream)
         # torch.cuda.synchronize(self.device)
         # print(f'forward: {se.elapsed_time(ee)/1000}')
 
-        for code in self.fwd_compile_code:
-            exec(code, self.storage.gd, self.storage.ld)
+        # for code in self.fwd_compile_code:
+        #     exec(code, self.storage.gd, self.storage.ld)
         
 
         return self.storage.get_val(self.graph.output.main_target)

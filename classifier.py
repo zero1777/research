@@ -92,17 +92,17 @@ for epoch in range(1):  # loop over the dataset multiple times
         outputs = new_net(inputs)
 
         # loss = criterion(outputs, labels)
-        loss = torch.mean(outputs)
-        loss.backward()
+        # loss = torch.mean(outputs)
+        # loss.backward()
 
-        new_net.backward()
-        optimizer.step()
+        # new_net.backward()
+        # optimizer.step()
 
         # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-            running_loss = 0.0
+        # running_loss += loss.item()
+        # if i % 2000 == 1999:    # print every 2000 mini-batches
+        #     print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+        #     running_loss = 0.0
 
     end_event.record(stream)
     torch.cuda.synchronize(device)
