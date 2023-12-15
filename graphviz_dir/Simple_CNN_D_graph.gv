@@ -1,0 +1,28 @@
+// D_graph = forward graph
+digraph Simple_CNN_D_graph {
+	x [label="x = 'INPUT'" color=blue]
+	__10_input [label="__10_input = torch._convolution(x, self.conv1.weight, self.conv1.bias, [1, 1], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	__7_input [label="__7_input = torch.relu(__10_input)"]
+	__16_input0 [label="__16_input0 = torch.max_pool2d(__7_input, [2, 2], [2, 2], [0, 0], [1, 1])"]
+	__23_input [label="__23_input = torch._convolution(__16_input0, self.conv2.weight, self.conv2.bias, [1, 1], [0, 0], [1, 1], False, [0, 0], 1, False, False, True, True)"]
+	__28_input0 [label="__28_input0 = torch.relu(__23_input)"]
+	__30_x [label="__30_x = torch.max_pool2d(__28_input0, [2, 2], [2, 2], [0, 0], [1, 1])"]
+	__29_input1 [label="__29_input1 = torch.Tensor.view(__30_x, [(- 1), 400])"]
+	__39_fv [label="__39_fv = torch.nn.functional.linear(__29_input1, self.fc1.weight, self.fc1.bias)"]
+	__36_input2 [label="__36_input2 = torch.relu(__39_fv)"]
+	__43_fv [label="__43_fv = torch.nn.functional.linear(__36_input2, self.fc2.weight, self.fc2.bias)"]
+	__40_input3 [label="__40_input3 = torch.relu(__43_fv)"]
+	__46_fv [label="__46_fv = torch.nn.functional.linear(__40_input3, self.fc3.weight, self.fc3.bias)" color=red]
+	x -> __10_input
+	__10_input -> __7_input
+	__7_input -> __16_input0
+	__16_input0 -> __23_input
+	__23_input -> __28_input0
+	__28_input0 -> __30_x
+	__30_x -> __29_input1
+	__29_input1 -> __39_fv
+	__39_fv -> __36_input2
+	__36_input2 -> __43_fv
+	__43_fv -> __40_input3
+	__40_input3 -> __46_fv
+}

@@ -232,11 +232,12 @@ class Storage:
             "cmeta": torch.view_as_complex(torch.ones(2)).to(device),
         }
         self.ld = {}
-        self.gd["shapes"] = {}
         self.shapes = dict()
         self.dtypes = dict()
         self.rng_state = RngState() # rng (random number generator), used for producing same random numbers
         self.cpu_ld = {}
+        self.gd["shapes"] = {}
+        self.gd["rng_state"] = RngState()
 
     def add_val(self, val, x):
         self.ld[val] = x
@@ -413,6 +414,8 @@ class Compiler:
             r.append(fct_generate_fake_data(self.storage, tensor_name))
             r2.append(fct_del_tensor_data(self.storage, tensor_name))
 
+        # print(f'{op.name} {temporary_tensor_names}')
+
         if not_first:
             prev_i = i - self.op_sched.op_name_list[:i][::-1].index(op.name) - 1
             input_names = []
@@ -543,23 +546,22 @@ class Compiler:
 
         return [code]
     
-    def _generate_fake_data(self, kdn):
+    def _generate_fake_data(self, mt, is_self=False):
         # return code for generate the target fake tensor (only for data/grad)
         prep_code = ""
         after_code = ""
-        mt = kdn
 
-        target_tensor = f"metensor.clone().expand(np.prod(shapes['{mt}']))"
+        target_tensor = f"meta.clone().expand(np.prod(shapes['{mt}']))"
         prep_code += f"{mt}.data = {target_tensor}.view(shapes['{mt}']);"
 
         # for v in kdn.tensor_targets:
-        #     after_code += f"{v}.data = torch.empty(0,device=device); "
+        after_code += f"{mt}.data = torch.empty(0,device=device); "
 
-        # if is_self:
-        prep_code += (
-            f"_{mt}.data = {target_tensor}.view(shapes['{mt}']);"
-        )
-        after_code += f"_{mt}.data = torch.empty(0,device=device);"
+        if is_self:
+            prep_code += (
+                f"_{mt}.data = {target_tensor}.view(shapes['{mt}']);"
+            )
+            after_code += f"_{mt}.data = torch.empty(0,device=device);"
 
         return prep_code, after_code
 
@@ -571,18 +573,17 @@ class Compiler:
         prep_code = ""
         after_code = ""
 
-        print(f'type: {op.type}')
-        
+        # print(f'{i}: {op.name} {op.main_target} {op.deps_fake}')
         for kdn in op.deps_fake:
+            kdn_name = kdn.split(" ")[0]
             if (
                 not self.is_alive(op, kdn)
                 # or op_sched.input_size[0] in kdn.name
             ):
-                print(f'type: {kdn}')
-                fake_code = self._generate_fake_data(kdn)
+                fake_code = self._generate_fake_data(kdn_name, is_self=(kdn_name == op.main_target))
                 prep_code += fake_code[0]
                 after_code += fake_code[1]
-                
+        
         if not_first:
             prev_i = i - self.op_sched.op_list[:i][::-1].index(op) - 1
             input_names = []
@@ -599,10 +600,9 @@ class Compiler:
         if op.is_rand:
             bwd_code = f"rng_state.get('{op.name}');rng_state.restore('{op.name}')\n{bwd_code}"
             
-            
         return [bwd_code]
 
-    def del_op2(op, i):
+    def del_op2(self, op, i):
         code = ""
         if op.kdn_type == "data":
             if (
@@ -636,8 +636,8 @@ class Compiler:
             
         if op.kdn_type == "phantoms":
             code += f"del _{op.main_target};"
-            
-        return code
+
+        return [code]
 
     def compile(self, op_sched):
         self.op_sched = op_sched
@@ -662,13 +662,15 @@ class Compiler:
                     fct_list.append(self.compile_swapout(op))
                 else:
                     fct_list.append(self.compile_del_data(op))
+                    bwd_code.append(self.del_op2(op, i))
             elif "grad" in op.name:
                 fct_list.append(self.compile_del_grad(op))
+                bwd_code.append(self.del_op2(op, i))
             else:
                 fct_list.append([])
 
         # print(f'fwd_code: {fwd_code}')
         # print(f'bwd_code: {bwd_code}')
 
-        return fct_list, fwd_code
+        return fct_list, fwd_code, bwd_code
 

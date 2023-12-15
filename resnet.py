@@ -17,7 +17,7 @@ new_net  = Asuta(net, sample)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-repeat = 10
+repeat = 1
 running_loss = 0.0
 
 for _ in range(repeat):
@@ -32,7 +32,7 @@ for _ in range(repeat):
 
     loss = criterion(outputs, torch.tensor([1, 2, 3, 4, 5]).to(device))
     loss.backward()
-    # .backward() 
+    new_net.backward() 
     optimizer.step()
 
     # running_loss += loss.item()

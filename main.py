@@ -69,12 +69,3 @@ for_test = Asuta(model, sample)
 # y = for_test(*sample)
 
 print('---  Done rematerialization with Asuta ----')
-
-# torch.onnx.export(
-#     for_test,
-#     torch.rand(1, 3, 32, 32).to(device),
-#     "simple_cnn.onnx",
-#     verbose=True,
-#     input_names=["input"],
-#     output_names=["output"],
-# )
