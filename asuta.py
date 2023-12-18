@@ -24,7 +24,8 @@ class Asuta(torch.nn.Module):
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.eviction_list = []
-        # self.eviction_list = ["__7_input data", "__16_input0 data"]
+        self.eviction_list = ["__7_input data"]
+        # self.eviction_list = ["__13_input data", "__25_input data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
@@ -136,6 +137,8 @@ class Asuta(torch.nn.Module):
         self.logger.info(f'compute_overhead: {self.compute_overhead}')
         self.logger.info(f'total_overhead: {self.total_overhead}')
 
+        # print(f'data memory: {self.data_memory}')
+
         # self.select_eviction_list()
 
     def select_eviction_list(self):
@@ -197,7 +200,7 @@ class Asuta(torch.nn.Module):
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_op(self.kdn_dict[deps_name])
-                            dnode.is_swap = False
+                            dnode.is_swap = True 
                             self.fwd_op_list_v2.append(dnode)
 
                 for kdn_name in op.users_global:
@@ -213,7 +216,7 @@ class Asuta(torch.nn.Module):
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
             cnode = C_op(parent_op, alive_datas=alive_datas.copy())
-            cnode.is_swap = False
+            cnode.is_swap = True 
             self.bwd_op_list_v2.append(cnode)
             del evict_list[kdn_name]
 
@@ -272,10 +275,10 @@ class Asuta(torch.nn.Module):
         self.bwd_compile_code = []
 
         self.compiler = Compiler(self.storage)
-        self.fct_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
-        loss_idx = len(self.fwd_op_list)
-        # self.fct_list = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
-        # loss_idx = len(self.fwd_op_list_v2)
+        # self.fct_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        # loss_idx = len(self.fwd_op_list)
+        self.fct_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 

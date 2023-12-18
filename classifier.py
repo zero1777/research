@@ -8,7 +8,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-batch_size = 4
+batch_size = 16
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
@@ -88,14 +88,14 @@ for epoch in range(3):  # loop over the dataset multiple times
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        outputs = net(inputs)
-        # outputs = new_net(inputs)
+        # outputs = net(inputs)
+        outputs = new_net(inputs)
 
         loss = criterion(outputs, labels)
         # loss = torch.mean(outputs)
         loss.backward()
 
-        # new_net.backward()
+        new_net.backward()
         optimizer.step()
 
         # print statistics

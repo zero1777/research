@@ -187,6 +187,7 @@ def fct_swapin(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
             storage.ld[tensor_name].data = storage.cpu_ld[tensor_name].data.cuda(non_blocking=False)
+            # storage.ld[tensor_name].data.copy_(storage.cpu_ld[tensor_name].data, non_blocking=False)
             storage.ld[f"_{tensor_name}"].data = storage.ld[tensor_name].data
 
     return fct
@@ -194,14 +195,15 @@ def fct_swapin(storage, tensor_name, swap_stream):
 def fct_swapout(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
-            storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu")
+            if tensor_name not in storage.cpu_ld.keys():
+                storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu", pin_memory=True)
             storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
-            storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
+            storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach()
+            # storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach().requires_grad_(True)
 
     return fct
 
     # endregion
-
 
 class RngState:
     def __init__(self):
@@ -238,6 +240,7 @@ class Storage:
         self.cpu_ld = {}
         self.gd["shapes"] = {}
         self.gd["rng_state"] = RngState()
+        self.gd["cpu_ld"] = {}
 
     def add_val(self, val, x):
         self.ld[val] = x
@@ -264,6 +267,7 @@ class Compiler:
         self.shapes = storage.shapes
         self.device = self.storage.gd["device"]
         self.swap_stream = torch.cuda.Stream()
+        self.storage.gd["swap_stream"] = self.swap_stream
 
     def is_alive(self, op, kdn_name):
         # if kdn_name in self.op_sched.kdn_names:
@@ -473,8 +477,33 @@ class Compiler:
         
         return r
 
+    def compile_swapin2(self, op):
+        stream_code = f"with torch.cuda.stream(swap_stream):\n"
+        swap_code = f"\t{op.main_target}.data = cpu_ld['{op.main_target}'].data.cuda(non_blocking=False); _{op.main_target}.data = {op.main_target}.data\n"  
+        code = f"{stream_code}{swap_code}" 
+        print(code)
+
+        return [code]
+    
+    def compile_swapout2(self, op):
+        stream_code = f"with torch.cuda.stream(swap_stream):\n"
+        allocate_code = f"\tif '{op.main_target}' not in cpu_ld.keys(): cpu_ld['{op.main_target}'] = torch.empty({op.main_target}.size(), device='cpu', pin_memory=True)\n"
+        swap_code = f"\tcpu_ld['{op.main_target}'].copy_({op.main_target}, non_blocking=False); cpu_ld['{op.main_target}'] = cpu_ld['{op.main_target}'].detach()\n" 
+        delete_code = f"{op.main_target}.data = torch.empty(0, device=device); _{op.main_target}.data = torch.empty(0, device=device)\n"
+        code = f"{stream_code}{allocate_code}{swap_code}{delete_code}"
+        print(code)
+        
+        return [code]
+        
+
     def compile_fwd2(self, op, i):
         not_first = op.name in self.op_sched.op_name_list[:i]
+        # TODO: pack / unpack
+
+        # pack_code = "def fct_get_pack():\n\tdef pack(x):\n\t\treturn x\n\treturn pack\n"
+        # unpack_code = "def fct_get_unpack():\n\tdef unpack(x):\n\t\treturn x\n\treturn unpack\n" 
+        autograd_code = "with torch.autograd.graph.saved_tensors_hooks(fct_get_pack(), fct_get_unpack()):\n\t"
+
 
         if not op.proxy:
             last_before_bwd = False
@@ -487,18 +516,23 @@ class Compiler:
             )
 
         r = []
+        code = ""
+        # code += pack_code + unpack_code
         
         suffix = ""
         if not_first and not op.proxy and "loss" not in op.name:
             suffix = ".data"
         
-        code = (
+        code += autograd_code
+        code += (
             make_str_assign(
                 op.main_code, suffix=suffix, force_special_kwargs=not_first
             )
             + "\n"
         )
 
+        if op.inplace_code:
+            code += autograd_code
         code += (
             make_str_list_assign(
                 op.inplace_code, force_special_kwargs=not_first
@@ -522,6 +556,7 @@ class Compiler:
             suffix = ""
             if not_first and (bc[0] in op.tensor_targets):
                 suffix = ".data"
+            code += autograd_code
             code += (
                 make_str_assign(bc, suffix=suffix, force_special_kwargs=not_first)
                 + "\n"
@@ -643,14 +678,18 @@ class Compiler:
         self.op_sched = op_sched
         # TODO: op_sched renamed
 
+        pack_code = f"def fct_get_pack():\n\tdef pack(x):\n\t\treturn x\n\treturn pack\n"
+        unpack_code = f"def fct_get_unpack():\n\tdef unpack(x):\n\t\treturn x\n\treturn unpack\n"
+
         fct_list = []
-        fwd_code = []
+        fwd_code = [[pack_code], [unpack_code]]
         bwd_code = []
 
         for i, op in enumerate(op_sched.op_list):
             if "fwd" in op.name:
                 if op.is_swap:
                     fct_list.append(self.compile_swapin(op))
+                    bwd_code.append(self.compile_swapin2(op))
                 else:
                     fct_list.append(self.compile_fwd(op, i))
                     fwd_code.append(self.compile_fwd2(op, i))
@@ -660,6 +699,7 @@ class Compiler:
             elif "data" in op.name:
                 if op.is_swap:
                     fct_list.append(self.compile_swapout(op))
+                    fwd_code.append(self.compile_swapout2(op))
                 else:
                     fct_list.append(self.compile_del_data(op))
                     bwd_code.append(self.del_op2(op, i))
@@ -669,8 +709,8 @@ class Compiler:
             else:
                 fct_list.append([])
 
-        # print(f'fwd_code: {fwd_code}')
-        # print(f'bwd_code: {bwd_code}')
+        print(f'fwd_code: {fwd_code}')
+        print(f'bwd_code: {bwd_code}')
 
         return fct_list, fwd_code, bwd_code
 

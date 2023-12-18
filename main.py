@@ -56,10 +56,10 @@ sample = [torch.rand(1, 3, 32, 32).to(device)]
 
 print("---  Doing rematerialization with Asuta ----")
 
-# optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters())
 for_test = Asuta(model, sample)
 # compare(for_test, model, sample)
-# train_test(for_test, sample, optimizer)
+train_test(for_test, sample, optimizer)
 
 # torch.cuda.empty_cache()
 # print(torch.cuda.memory_allocated())

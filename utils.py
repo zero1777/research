@@ -83,10 +83,10 @@ def train_test(mod, inputs, optimizer, repeat=1):
         y = mod(**_x)
         # print(f"[Forward] peak memory in process: {torch.cuda.max_memory_allocated() - max_before}")
         loss = y.mean()
-        loss.backward()
-        # print(f'loss: {loss}')
-        mod.backward()
-        optimizer.step()
+        # loss.backward()
+        # # print(f'loss: {loss}')
+        # mod.backward()
+        # optimizer.step()
         # print(f"[Backward] peak memory in process: {torch.cuda.max_memory_allocated() - max_before}")
     peak_mem = torch.cuda.max_memory_allocated() - max_before
 
