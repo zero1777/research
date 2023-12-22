@@ -24,12 +24,16 @@ class Asuta(torch.nn.Module):
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.eviction_list = []
-        self.eviction_list = ["__7_input data"]
-        # self.eviction_list = ["__13_input data", "__25_input data"]
+        # self.eviction_list = ["__7_input data"]
+        self.eviction_list = ["__166_out data"]
+        self.eviction_list = ["__13_input data", "__25_input data", "__154_input data", "__166_out data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
         self.num_evict = 3
+        self.mode = "s" # s, r
+        self.version = "f" # s, f
+        
         self.construct_op_list()
         self.construct_op_list_v2()
         self.compile_function()
@@ -200,7 +204,7 @@ class Asuta(torch.nn.Module):
                             parent_op = [n for n in self.kdn_dict[deps_name].deps]
                             evict_list[deps_name] = parent_op[0]
                             dnode = D_op(self.kdn_dict[deps_name])
-                            dnode.is_swap = True 
+                            dnode.is_swap = True if self.mode == "s" else False 
                             self.fwd_op_list_v2.append(dnode)
 
                 for kdn_name in op.users_global:
@@ -216,7 +220,7 @@ class Asuta(torch.nn.Module):
                 if deps.name in evict_list:
                     regen_tensor(deps.name)
             cnode = C_op(parent_op, alive_datas=alive_datas.copy())
-            cnode.is_swap = True 
+            cnode.is_swap = True if self.mode == "s" else False
             self.bwd_op_list_v2.append(cnode)
             del evict_list[kdn_name]
 
@@ -253,6 +257,7 @@ class Asuta(torch.nn.Module):
 
         self.logger.debug(f'fwd_op_list_evict: {[op.name for op in self.fwd_op_list_v2]}')
         self.logger.debug(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_v2]}')
+        # print(f'fwd_op_list_evict: {[[op.name, op.main_target] for op in self.fwd_op_list_v2]}')
         # print(f'bwd_op_list_evict: {[[op.name, op.main_target] for op in self.bwd_op_list_v2]}')
             
         list_kdn = []
@@ -269,30 +274,49 @@ class Asuta(torch.nn.Module):
         )
 
     def compile_function(self):
+        self.exec_list = []
         self.fwd_code = []
         self.fwd_compile_code = []
         self.bwd_code = []
         self.bwd_compile_code = []
 
         self.compiler = Compiler(self.storage)
-        # self.fct_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
+        # self.fct_list, self.exec_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched) # compile op_sched -> list of functions
         # loss_idx = len(self.fwd_op_list)
-        self.fct_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
+        self.fct_list, self.exec_list, self.fwd_code, self.bwd_code = self.compiler.compile(self.op_sched_v2) # compile op_sched -> list of functions
         loss_idx = len(self.fwd_op_list_v2)
         self.fwd_fct_list = self.fct_list[:loss_idx]
         self.bwd_fct_list = self.fct_list[loss_idx:]
 
-        for code_list in self.fwd_code:
+        self.fwd_exec_list = self.exec_list[:loss_idx+2]
+        self.bwd_exec_list = self.exec_list[loss_idx+2:]
+
+        # for code_list in self.fwd_code:
+        #     # print(code_list)
+        #     self.fwd_compile_code.append(
+        #         compile(ast.parse("\n".join(code_list)), "", "exec")
+        #     )
+
+        # for code_list in self.bwd_code:
+        #     # print(code_list)
+        #     self.bwd_compile_code.append(
+        #         compile(ast.parse("\n".join(code_list)), "", "exec")
+        #     )
+
+        tt = 1
+        for code_list in self.fwd_exec_list:
             # print(code_list)
             self.fwd_compile_code.append(
                 compile(ast.parse("\n".join(code_list)), "", "exec")
             )
-
-        for code_list in self.bwd_code:
+        
+        print("---bwd---")
+        for code_list in self.bwd_exec_list:
             # print(code_list)
             self.bwd_compile_code.append(
                 compile(ast.parse("\n".join(code_list)), "", "exec")
             )
+
 
         self.logger.debug(f'fwd_fct: {[fct for fct in self.fwd_fct_list]}')
         self.logger.debug(f'bwd_fct: {[fct for fct in self.bwd_fct_list]}')
@@ -307,22 +331,14 @@ class Asuta(torch.nn.Module):
             return self.graph.model(*args, **kwargs)
         
         # set input data
-        # stream = torch.cuda.current_stream(self.device)
-        # se = torch.cuda.Event(enable_timing=True)
         model_inputs = make_inputs(self.graph.model, args, kwargs)
-        # ee = torch.cuda.Event(enable_timing=True)
-        # se.record(stream)
-        # ee.record(stream)
-        # print(f'forward: {se.elapsed_time(ee)/1000}')
+
         for k, v in model_inputs.items():
             self.storage.add_val(k, v)
         
         # execute init code
         exec(self.graph.init_code, self.storage.gd, self.storage.ld)
-        # start_time = time.time()
-        # end_time = time.time()
-        # training_time = end_time - start_time
-        # print(f'training_time (sec): {training_time}')
+
 
         for kg in self.graph.graph_list:
             for kdn in kg.list_kdn:
@@ -331,31 +347,16 @@ class Asuta(torch.nn.Module):
                     requires_grad=kdn.info.requires_grad
                 )
                 self.storage.ld[kdn.main_target] = tensor_val
-            
+        if self.version == "s":
+            for l in self.fwd_fct_list:  
+                self._exec(l)
 
-        # execute the generated function list (forward)
-        # stream = torch.cuda.current_stream(self.device)
-        # for i, l in enumerate(self.fwd_fct_list):
-        #     se = torch.cuda.Event(enable_timing=True)
-        #     ee = torch.cuda.Event(enable_timing=True)
-        #     se.record(stream)
-        #     self._exec(l)
-        #     ee.record(stream)
-        #     torch.cuda.synchronize(self.device)
-        #     print(f'forward: {i}, {se.elapsed_time(ee)/1000}, {torch.cuda.max_memory_allocated() - 17553408}, {torch.cuda.memory_allocated() - 17553408}')
-            
-        # stream = torch.cuda.current_stream(self.device)
-        # se = torch.cuda.Event(enable_timing=True)
-        # ee = torch.cuda.Event(enable_timing=True)
-        # se.record(stream)
-        # for l in self.fwd_fct_list:  
-        #     self._exec(l)
-        # ee.record(stream)
-        # torch.cuda.synchronize(self.device)
-        # print(f'forward: {se.elapsed_time(ee)/1000}')
-
-        for code in self.fwd_compile_code:
-            exec(code, self.storage.gd, self.storage.ld)
+        else :
+            tt = 1
+            for code in self.fwd_compile_code:
+                exec(code, self.storage.gd, self.storage.ld)
+                # print(f'forward: {tt}, {torch.cuda.max_memory_allocated()}')
+                tt += 1
         
 
         return self.storage.get_val(self.graph.output.main_target)
@@ -363,11 +364,13 @@ class Asuta(torch.nn.Module):
     
     def backward(self):
         # execute the generated function list (backward)
-        # for i, l in enumerate(self.bwd_fct_list):
-        #     self._exec(l)
 
-        for code in self.bwd_compile_code:
-            exec(code, self.storage.gd, self.storage.ld)
+        if self.version == "s":
+            for i, l in enumerate(self.bwd_fct_list):
+                self._exec(l)
+        else:
+            for code in self.bwd_compile_code:
+                exec(code, self.storage.gd, self.storage.ld)
 
         # for l in self.bwd_fct_list:
-            # self._exec(l)
+        #     self._exec(l)

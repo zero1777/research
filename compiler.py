@@ -226,7 +226,7 @@ class Storage:
         self.gd = {
             **globals(),
             **dict_constants,
-            # "original_mod": nn_mod,
+            "original_mod": nn_mod,
             "self": nn_mod,
             "device": device,
             "torch": torch,
@@ -322,6 +322,7 @@ class Compiler:
                 make_str_assign(bc, suffix=suffix, force_special_kwargs=not_first)
                 + "\n"
             )
+        # print(f'{op.name} {body_code}')
 
         # compile main code
         suffix = ""
@@ -481,7 +482,7 @@ class Compiler:
         stream_code = f"with torch.cuda.stream(swap_stream):\n"
         swap_code = f"\t{op.main_target}.data = cpu_ld['{op.main_target}'].data.cuda(non_blocking=False); _{op.main_target}.data = {op.main_target}.data\n"  
         code = f"{stream_code}{swap_code}" 
-        print(code)
+        # print(code)
 
         return [code]
     
@@ -489,13 +490,50 @@ class Compiler:
         stream_code = f"with torch.cuda.stream(swap_stream):\n"
         allocate_code = f"\tif '{op.main_target}' not in cpu_ld.keys(): cpu_ld['{op.main_target}'] = torch.empty({op.main_target}.size(), device='cpu', pin_memory=True)\n"
         swap_code = f"\tcpu_ld['{op.main_target}'].copy_({op.main_target}, non_blocking=False); cpu_ld['{op.main_target}'] = cpu_ld['{op.main_target}'].detach()\n" 
-        delete_code = f"{op.main_target}.data = torch.empty(0, device=device); _{op.main_target}.data = torch.empty(0, device=device)\n"
+        # delete_code = self.compile_del_swap_tensor(op)
+        delete_code = f"{op.main_target}.data = torch.empty(0, device=device); _{op.main_target}.data = torch.empty(0, device=device);\n"
         code = f"{stream_code}{allocate_code}{swap_code}{delete_code}"
-        print(code)
+        # print(code)
         
         return [code]
-        
+    
+    def compile_del_swap_tensor(self, op):
+        code = ""
+        if op.kdn_type == "data":
+            if (
+                op.info is not None
+                and op.info.requires_grad
+                # and _is_alive(op.name.replace("data", "phantoms"), i)
+                and op.proxy
+            ):
+                code += f"_{op.main_target}.data = torch.empty(0,device=device);"
+                for inp in op.inplace_targets:
+                    code += f"_{inp}.data = torch.empty(0,device=device);"
+                #     code += f"del _{inp};"
 
+                # if op.includes_phantoms:
+                #     code += f"del _{op.main_target};"
+
+                # if op.includes_base:
+                #     if op.proxy:
+                #         code += f"_{op.main_target}._base.data = torch.empty(0,device=device);"
+                #     else:
+                #         code += f"{op.main_target}._base.data = torch.empty(0,device=device);"
+
+            for v in op.tensor_targets:
+                code += f"{v}.data = torch.empty(0,device=device); "
+
+            # for v in op.container_targets:
+            #     code += f"del {v};"
+
+        if op.kdn_type == "grad":
+            code += f"{op.main_target}.grad = None;"
+            
+        # if op.kdn_type == "phantoms":
+        #     code += f"del _{op.main_target};"
+
+        return code
+    '''
     def compile_fwd2(self, op, i):
         not_first = op.name in self.op_sched.op_name_list[:i]
         # TODO: pack / unpack
@@ -503,6 +541,16 @@ class Compiler:
         # pack_code = "def fct_get_pack():\n\tdef pack(x):\n\t\treturn x\n\treturn pack\n"
         # unpack_code = "def fct_get_unpack():\n\tdef unpack(x):\n\t\treturn x\n\treturn unpack\n" 
         autograd_code = "with torch.autograd.graph.saved_tensors_hooks(fct_get_pack(), fct_get_unpack()):\n\t"
+
+        if "loss" in op.main_target:
+            code = f"with torch.no_grad():\n\t"
+            code += (
+                make_str_assign(
+                    op.main_code, suffix="", force_special_kwargs=not_first
+                )
+                + "\n"
+            )
+            return [code]
 
 
         if not op.proxy:
@@ -524,26 +572,33 @@ class Compiler:
             suffix = ".data"
         
         code += autograd_code
-        code += (
+        main_code = ""
+        main_code += (
             make_str_assign(
                 op.main_code, suffix=suffix, force_special_kwargs=not_first
             )
             + "\n"
         )
+        main_code = main_code.replace(op.main_target, f"_{op.main_target}")
+        code += main_code
 
         if op.inplace_code:
             code += autograd_code
-        code += (
+        inplace_code = ""
+        inplace_code += (
             make_str_list_assign(
                 op.inplace_code, force_special_kwargs=not_first
             )
             + "\n"
         )
+        for target in op.tensor_targets:
+            inplace_code = inplace_code.replace(target, "_" + target)
+        code += inplace_code
 
         if op.proxy:
             mt = op.main_target
-            for target in op.tensor_targets:
-                code = code.replace(target, "_" + target)
+            # for target in op.tensor_targets:
+            #     code = code.replace(target, "_" + target)
             if not_first:
                 code += f"{mt}.data = _{mt}.data;\n"
             else:
@@ -580,7 +635,126 @@ class Compiler:
         # print(code)
 
         return [code]
-    
+    '''
+    def compile_fwd2(self, op, i):
+        not_first = op.name in self.op_sched.op_name_list[:i]
+        # TODO: pack / unpack
+
+        if "loss" in op.main_target:
+            code = f"with torch.no_grad():\n\t"
+            code += (
+                make_str_assign(
+                    op.main_code, suffix="", force_special_kwargs=not_first
+                )
+                + "\n"
+            )
+            return [code]
+            
+
+        # pack_code = "def fct_get_pack():\n\tdef pack(x):\n\t\treturn x\n\treturn pack\n"
+        # unpack_code = "def fct_get_unpack():\n\tdef unpack(x):\n\t\treturn x\n\treturn unpack\n" 
+        autograd_code = "with torch.autograd.graph.saved_tensors_hooks(fct_get_pack(), fct_get_unpack()):\n\t"
+
+
+        if not op.proxy:
+            last_before_bwd = False
+        else:
+            next_bwd_idx = i + self.op_sched.op_name_list[i:].index(
+                op.name.replace("fwd", "bwd")
+            )
+            last_before_bwd = not (
+                op.name in self.op_sched.op_name_list[i + 1 : next_bwd_idx]
+            )
+
+        code = ""
+        # code += pack_code + unpack_code
+        
+        suffix = ""
+        if not_first and not op.proxy and "loss" not in op.name:
+            suffix = ".data"
+        
+        code += autograd_code
+        main_code = ""
+        main_code += (
+            make_str_assign(
+                op.main_code, suffix=suffix, force_special_kwargs=not_first
+            )
+            + "\n"
+        )
+        main_code = main_code.replace(op.main_target, f"_{op.main_target}")
+        code += main_code
+
+        inplace_code = ""
+        for ic in op.inplace_code:
+            suffix = ""
+            inplace_code += autograd_code
+            inplace_code += (
+                make_str_assign(
+                    ic, suffix=suffix, force_special_kwargs=not_first
+                )
+                + "\n"
+            )
+        
+        # if op.inplace_code:
+        #     code += autograd_code
+        # inplace_code = ""
+        # inplace_code += (
+        #     make_str_list_assign(
+        #         op.inplace_code, force_special_kwargs=not_first
+        #     )
+        #     + "\n"
+        # )
+
+        for target in op.tensor_targets:
+            inplace_code = inplace_code.replace(target, "_" + target)
+        code += inplace_code
+        print(inplace_code)
+
+        
+
+        if op.proxy:
+            mt = op.main_target
+            # for target in op.tensor_targets:
+            #     code = code.replace(target, "_" + target)
+            if not_first:
+                code += f"{mt}.data = _{mt}.data;\n"
+            else:
+                code += (
+                    f"{mt} = _{mt}.detach();{mt}.requires_grad_();\n"
+                )
+        # code += (
+        #     f"{op.main_target}.data = _{op.main_target}.data;\n"
+        # ) 
+
+        # compile body code
+        for bc in op.body_code:
+            suffix = ""
+            if not_first and (bc[0] in op.tensor_targets):
+                suffix = ".data"
+            code += autograd_code
+            code += (
+                make_str_assign(bc, suffix=suffix, force_special_kwargs=not_first)
+                + "\n"
+            )
+
+        # get the shape of tensors
+        if not not_first:
+            code += f"shapes['_{op.main_target}'] = _{op.main_target}.shape;"
+            for target in op.tensor_targets:
+                code += f"shapes['{target}'] = {target}.shape;"
+            # for phantom_name in op.phantom_names:
+            #     code += (
+            #         f"shapes['{phantom_name}'] = _{phantom_name}.shape;"
+            #     )
+
+        # rand
+        if op.is_rand:
+            code = f"rng_state.get('{op.name}');rng_state.restore('{op.name}')\n{code}"
+
+        # print(f'{i}: {op.name}')
+        # print(code)
+
+        return [code]
     def _generate_fake_data(self, mt, is_self=False):
         # return code for generate the target fake tensor (only for data/grad)
         prep_code = ""
@@ -637,7 +811,7 @@ class Compiler:
             
         return [bwd_code]
 
-    def del_op2(self, op, i):
+    def del_op2(self, op, i=0):
         code = ""
         if op.kdn_type == "data":
             if (
@@ -682,35 +856,46 @@ class Compiler:
         unpack_code = f"def fct_get_unpack():\n\tdef unpack(x):\n\t\treturn x\n\treturn unpack\n"
 
         fct_list = []
+        exec_list = [[pack_code], [unpack_code]]
         fwd_code = [[pack_code], [unpack_code]]
         bwd_code = []
 
         for i, op in enumerate(op_sched.op_list):
+            # print(f'{i}: {op}')
             if "fwd" in op.name:
+                # print(f'{op.main_code}')
                 if op.is_swap:
                     fct_list.append(self.compile_swapin(op))
-                    bwd_code.append(self.compile_swapin2(op))
+                    # bwd_code.append(self.compile_swapin2(op))
+                    exec_list.append(self.compile_swapin2(op))
                 else:
                     fct_list.append(self.compile_fwd(op, i))
-                    fwd_code.append(self.compile_fwd2(op, i))
+                    # fwd_code.append(self.compile_fwd2(op, i))
+                    exec_list.append(self.compile_fwd2(op, i))
             elif "bwd" in op.name:
                 fct_list.append(self.compile_bwd(op, i))
-                bwd_code.append(self.compile_bwd2(op, i))
+                # bwd_code.append(self.compile_bwd2(op, i))
+                exec_list.append(self.compile_bwd2(op, i))
             elif "data" in op.name:
                 if op.is_swap:
+                    # print(f'{op.name} swapout')
                     fct_list.append(self.compile_swapout(op))
-                    fwd_code.append(self.compile_swapout2(op))
+                    # fwd_code.append(self.compile_swapout2(op))
+                    exec_list.append(self.compile_swapout2(op))
                 else:
                     fct_list.append(self.compile_del_data(op))
-                    bwd_code.append(self.del_op2(op, i))
+                    # bwd_code.append(self.del_op2(op, i))
+                    exec_list.append(self.del_op2(op, i))
             elif "grad" in op.name:
                 fct_list.append(self.compile_del_grad(op))
-                bwd_code.append(self.del_op2(op, i))
+                # bwd_code.append(self.del_op2(op, i))
+                exec_list.append(self.del_op2(op, i))
             else:
                 fct_list.append([])
+                exec_list.append([])
 
-        print(f'fwd_code: {fwd_code}')
-        print(f'bwd_code: {bwd_code}')
+        # print(f'fwd_code: {fwd_code}')
+        # print(f'bwd_code: {bwd_code}')
 
-        return fct_list, fwd_code, bwd_code
+        return fct_list, exec_list, fwd_code, bwd_code
 
