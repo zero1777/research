@@ -71,6 +71,7 @@ class D_op: # data node
         self.proxy = proxy
         self.includes_phantoms = kdn.includes_phantoms
         self.includes_base = kdn.includes_base
+        self.users_real = kdn.users_real
         self.is_swap = False
 
     def __eq__(self, op2):

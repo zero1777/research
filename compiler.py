@@ -708,7 +708,7 @@ class Compiler:
         for target in op.tensor_targets:
             inplace_code = inplace_code.replace(target, "_" + target)
         code += inplace_code
-        print(inplace_code)
+        # print(inplace_code)
 
         
 
