@@ -16,7 +16,7 @@ device = torch.device("cuda")
 net = models.resnet50().to(device)
 s = [torch.rand(128, 3, 224, 224).to(device)]
 
-batch_size = 128 
+batch_size = 256
 sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
 # y = torch.randint(1, 91, (batch_size, ))
 
@@ -36,12 +36,12 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 # ee = time.time()
 # print(f'init_time (sec): {ee-ss}')
 
-repeat = 5
+repeat = 1
 running_loss = 0.0
 
 torch.cuda.reset_peak_memory_stats()
-max_before = torch.cuda.max_memory_allocated()
-print(f"Before: {max_before}, {torch.cuda.memory_reserved()}")
+max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
+print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
 for _ in range(repeat):
     optimizer.zero_grad()

@@ -25,15 +25,13 @@ class Asuta(torch.nn.Module):
         self.graph = Graph(original_model, model_inputs)
         self.device = get_device()
         self.eviction_list = []
-        # self.eviction_list = ["__13_input data", "__25_input data", "__154_input data", "__166_out data"]
+        # self.eviction_list = ["__13_input data", "__25_input data", "__28_input data", "__154_input data", "__47_input data", "__59_input data", "__63_input data", "__76_input data", "__80_input data", "__98_input data", "__242_input data", "__254_input data", "__211_input data", "__275_input data", "__293_input data", "__349_input data", "__406_input data", "__316_input data", "__332_input data", "__389_input data", "__121_input data", "__133_input data", "__137_input data", "__178_input data", "__194_input data"]
         # self.eviction_list = ["__540_out data"] # 389, 402
-        # self.eviction_list = ["__7_input data"]
         # self.eviction_list = ["__28_input data", "__98_input data", "__110_identity data", "__154_input data"]
-        # self.eviction_list = ["__26_input data", "__329_fv data", "__177_fv data"]
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
-        self.num_evict = 23
+        self.num_evict = 1 
         self.mode = "r" # s, r
         self.version = "s" # s, f
 
@@ -44,6 +42,12 @@ class Asuta(torch.nn.Module):
         self.compile_function()
         # self.construct_profile_list()
         # self.run_profile(*profile_inputs)
+        mem_cnt = 0
+        print(f'eviction_list: ', end="")
+        for op in self.eviction_list:
+            print(f'({op}, {self.data_memory[op]})', end=" ")
+            mem_cnt += self.data_memory[op]
+        print(f'\n mem_cnt: {mem_cnt}')
 
     def construct_op_list(self):
         self.tmp_fwd_op_list = []
@@ -148,12 +152,12 @@ class Asuta(torch.nn.Module):
         self.logger.info(f'compute_overhead: {self.compute_overhead}')
         self.logger.info(f'total_overhead: {self.total_overhead}')
 
-        print(f'data memory: {self.data_memory}')
+        # print(f'data memory: {self.data_memory}')
         # print(f'data overhead: {self.data_overhead}')
         # print(f'compute overhead: {self.compute_overhead}')
         # print(f'total overhead: {self.total_overhead}')
 
-        # self.select_eviction_list()
+        self.select_eviction_list()
 
     def select_eviction_list(self):
         list_kdn = []
@@ -173,15 +177,17 @@ class Asuta(torch.nn.Module):
         print(f'cnt: {cnt}')
 
         self.sorted_rcost = dict(sorted(self.swap_cost.items(), key=lambda item: item[1], reverse=True))
+        # print(f'sorted_rcost: {self.sorted_rcost}')
 
         self.logger.info(f'recompute_cost: {self.recompute_cost}')
         self.logger.info(f'swap_cost: {self.swap_cost}')
         self.logger.info(f'sorted_rcost: {self.sorted_rcost}')
 
-        self.eviction_list = list(self.sorted_rcost.keys())[:self.num_evict]
+        
+        # self.eviction_list = list(self.sorted_rcost.keys())[:self.num_evict]
         self.logger.info(f'eviction_list: {self.eviction_list}')
 
-        print(f'eviction_list: {self.eviction_list}')
+        
         
     def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
@@ -226,27 +232,48 @@ class Asuta(torch.nn.Module):
 
                 for kdn_name in op.users_global:
                     alive_datas.add(kdn_name)
-
+                    
             elif isinstance(op, D_op):
-                in_evict_list = False
-                kdn_name = None
-                for kcn in op.users_real:
-                    assert len(kcn.users) == 1
-                    kdn_tmp = list(kcn.users)[0]
-                    # print(f'kcn: {kcn.name}, {[n.name for n in kcn.users]}')
-                    if kdn_tmp.name in self.eviction_list:
-                        print(f'kcn: {kcn.name}, {kdn_tmp.name}')
-                        in_evict_list = True
-                        kdn_name = kdn_tmp.name
-                        break
+                self.fwd_op_list_v2.append(op)
+                alive_datas.remove(op.name)
+                
+            # elif isinstance(op, D_op):
+            #     in_evict_list = False
+            #     for kcn in op.users_real:
+            #         if in_evict_list:
+            #             break
+            #         for kdn_tmp in kcn.users:
+            #             if kdn_tmp.name in self.eviction_list:
+            #                 in_evict_list = True
+            #                 break
 
-                if not in_evict_list:
-                    self.fwd_op_list_v2.append(op)
-                    alive_datas.remove(op.name)
-                else:
-                    c_op_name = "bwd_" + op.name.replace(" data", "")
-                    print(f'c_op_name: {c_op_name}, {op.name}')
-                    delete_after[c_op_name] = op
+            #     if not in_evict_list:
+            #         self.fwd_op_list_v2.append(op)
+            #         alive_datas.remove(op.name)
+            #     else:
+            #         c_op_name = "bwd_" + op.name.replace(" data", "")
+            #         # print(f'c_op_name: {c_op_name}, {op.name}')
+            #         delete_after[c_op_name] = op 
+
+            # elif isinstance(op, D_op):
+            #     in_evict_list = False
+            #     kdn_name = None
+            #     for kcn in op.users_real:
+            #         kdn_tmp = list(kcn.users)[0]
+            #         # print(f'kcn: {kcn.name}, {[n.name for n in kcn.users]}')
+            #         if kdn_tmp.name in self.eviction_list:
+            #             print(f'kcn: {kcn.name}, {kdn_tmp.name}')
+            #             in_evict_list = True
+            #             kdn_name = kdn_tmp.name
+            #             break
+
+            #     if not in_evict_list:
+            #         self.fwd_op_list_v2.append(op)
+            #         alive_datas.remove(op.name)
+            #     else:
+            #         c_op_name = "bwd_" + op.name.replace(" data", "")
+            #         # print(f'c_op_name: {c_op_name}, {op.name}')
+            #         delete_after[c_op_name] = op
         
 
         def regen_tensor(kdn_name):
@@ -299,7 +326,7 @@ class Asuta(torch.nn.Module):
         self.logger.debug(f'fwd_op_list_evict: {[op.name for op in self.fwd_op_list_v2]}')
         self.logger.debug(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_v2]}')
         print(f'fwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.fwd_op_list_v2)]}')
-        print(f'bwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.bwd_op_list_v2)]}')
+        # print(f'bwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.bwd_op_list_v2)]}')
             
         list_kdn = []
         for kg in self.graph.graph_list:
@@ -550,7 +577,7 @@ class Asuta(torch.nn.Module):
             tt = 1
             for code in self.fwd_compile_code:
                 exec(code, self.storage.gd, self.storage.ld)
-                # print(f'forward: {tt}, {torch.cuda.max_memory_allocated()}')
+                print(f'forward: {tt}, {torch.cuda.memory_allocated()/1000/1000/1000}, {torch.cuda.max_memory_allocated()/1000/1000/1000}')
                 tt += 1
         
 
@@ -565,8 +592,11 @@ class Asuta(torch.nn.Module):
                 # print(f'backward: {i}')
                 self._exec(l)
         else:
+            tt = 1
             for code in self.bwd_compile_code:
                 exec(code, self.storage.gd, self.storage.ld)
+                print(f'backward: {tt}, {torch.cuda.memory_allocated()/1000/1000/1000}, {torch.cuda.max_memory_allocated()/1000/1000/1000}')
+                tt += 1
 
         # for l in self.bwd_fct_list:
         #     self._exec(l)

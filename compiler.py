@@ -349,9 +349,9 @@ class Compiler:
             # TODO: no_save_list needed ?
             no_save_list = []
             candidates = list(op.deps_global) + list(op.users_global)
-            for kdn_name in candidates:
-                if kdn_name in self.op_sched.op_name_list[i:next_bwd_idx]:
-                    no_save_list.append(kdn_name.split(" ")[0])
+            # for kdn_name in candidates:
+            #     if kdn_name in self.op_sched.op_name_list[i:next_bwd_idx]:
+            #         no_save_list.append(kdn_name.split(" ")[0])
 
             for target in op.tensor_targets:
                 inplace_code = inplace_code.replace(target, "_" + target)
