@@ -38,9 +38,11 @@ class SimpleCNN(nn.Module):
 
 device = torch.device("cuda")
 
+model = SimpleCNN()
+sample = [torch.rand(1, 3, 32, 32)]
 
-model = SimpleCNN().to(device)
-sample = [torch.rand(1, 3, 32, 32).to(device)]
+# model = SimpleCNN().to(device)
+# sample = [torch.rand(1, 3, 32, 32).to(device)]
 
 # model = models.resnet50().to(device)
 # sample = [torch.rand(5, 3, 224, 224).to(device)]

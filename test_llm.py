@@ -13,6 +13,8 @@ from helpers.dataset import NextTokenPredictionDataset
 from helpers.trainer import train
 from helpers.config import LLMConfig, TrainingConfig
 
+from asuta import Asuta
+
 llm_config = LLMConfig(
     vocab_size=2_000,
     context_size=64,
@@ -75,13 +77,16 @@ print(f"model size: {size_all_mb:.3f}MB")
 
 #print(model)
 
-loss_history = train(
-    model,
-    ds_train,
-    batch_size=train_config.batch_size,
-    lr=train_config.learning_rate,
-    max_steps=train_config.max_steps,
-    weight_decay=train_config.weight_decay,
-    log_every=train_config.log_frequency,
-)
+# loss_history = train(
+#     model,
+#     ds_train,
+#     batch_size=train_config.batch_size,
+#     lr=train_config.learning_rate,
+#     max_steps=train_config.max_steps,
+#     weight_decay=train_config.weight_decay,
+#     log_every=train_config.log_frequency,
+# )
 
+inputs, labels = ds_train.get_batch(1)
+print(inputs)
+for_test = Asuta(model, inputs)
