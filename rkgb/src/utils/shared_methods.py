@@ -89,14 +89,14 @@ def get_deps(n):
     # To be compatible with different type/name of attribute "deps"
     t = str(type(n))
     if   "B_node" in t:   return n.deps
-    elif "D_op" in t:   return n.deps
+    elif "D_node" in t:   return n.deps
     elif "S_node" in t:   return set(n.deps.keys())
-    elif "K_C_op" in t: return set().union(
+    elif "K_C_node" in t: return set().union(
         *[kdn.deps for kdn in n.deps_real],
         n.deps_through_size_artefacts)
-    elif "K_D_op" in t: return set().union(
+    elif "K_D_node" in t: return set().union(
         *[kcn.deps_real for kcn in n.deps])
-    elif "H_C_op" in t: return set().union(
+    elif "H_C_node" in t: return set().union(
         *[hdn.deps for hdn in n.deps]
     )
     else: raise Exception(f"Unrecognize node type : {t}")

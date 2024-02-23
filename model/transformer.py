@@ -249,7 +249,7 @@ class TransformerBlock(Module):
         )
 
     def forward(self, x: Tensor):
-        x = x + self.multihead_attn(self.norm_1(x))  # (bs, seq_len, dim_in)
+        # x = x + self.multihead_attn(self.norm_1(x))  # (bs, seq_len, dim_in)
         x = x + self.feed_forward(self.norm_2(x))  # (bs, seq_len, dim_in)
 
         return x  # (bs, seq_len, dim_in)

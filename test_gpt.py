@@ -27,9 +27,9 @@ for _ in range(repeat):
     start_time = time.time()
     outputs = new_model(*sample)
     
-    loss = outputs.mean()
-    loss.backward()
-    new_model.backward() 
+    # loss = outputs.mean()
+    # loss.backward()
+    # new_model.backward() 
     
     end_time = time.time()
     train_time = end_time - start_time

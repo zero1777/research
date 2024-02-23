@@ -36,6 +36,10 @@ def train(
     optimizer = Adam(model.parameters(), lr=10 * lr, weight_decay=weight_decay)
     scheduler = CosineAnnealingLR(optimizer, T_max=max_steps, eta_min=lr, verbose=False)
     model.train()
+    
+    torch.cuda.reset_peak_memory_stats()
+    max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
+    print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
     for step in range(max_steps):
         optimizer.zero_grad(set_to_none=True)
@@ -56,6 +60,9 @@ def train(
 
         # val_loss = evaluate(model, dl_val, device)
         # val_loss_tracker["val_loss"].append(val_loss)
+
+    peak_mem = torch.cuda.max_memory_allocated() - max_before
+    print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
 
     return metrics_tracker
 

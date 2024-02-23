@@ -234,9 +234,9 @@ class GPT2(nn.Module):
     ):
         if pos_ids is None:
             pos_ids = torch.arange(
-                0, src.size(-1), dtype=torch.long, device=self.wpe.weight.device
+                0, int(src.size(-1)), dtype=torch.int64, device=self.wpe.weight.device
             ).unsqueeze(0)
-        inp = self.drop((self.wte(src) + self.wpe(pos_ids)))
+        inp = self.drop((self.wte(src) + self.wte(pos_ids)))
         if return_inp:
             return inp
         for i in range(self.nlayers):
@@ -366,4 +366,3 @@ def get_GPT(model="GPT2-small"):
         return GPT2(nlayers=24, d_model=1536, n_head=16)
     if model == "GPT3-xl":  # 1.3B parameters
         return GPT2(nlayers=24, d_model=2048, n_head=24)
-

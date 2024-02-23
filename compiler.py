@@ -10,22 +10,22 @@ from node import D_op
 def fct_get_pack(storage, no_save_list, sanity_check=False):
     # no_save_list contains a list of names
     def pack(x):
-        for i, c in enumerate(no_save_list):
-            if storage.ld[c].data_ptr() == x.data_ptr():
-                if sanity_check:
-                    assert torch.equal(
-                        storage.ld[c].data.as_strided_(
-                            x.shape, x.stride(), x.storage_offset()
-                        ),
-                        x,
-                    )
-                return (
-                    c,
-                    x.shape,
-                    x.stride(),
-                    x.storage_offset(),
-                    # x.clone(),
-                )
+        # for i, c in enumerate(no_save_list):
+        #     if storage.ld[c].data_ptr() == x.data_ptr():
+        #         if sanity_check:
+        #             assert torch.equal(
+        #                 storage.ld[c].data.as_strided_(
+        #                     x.shape, x.stride(), x.storage_offset()
+        #                 ),
+        #                 x,
+        #             )
+        #         return (
+        #             c,
+        #             x.shape,
+        #             x.stride(),
+        #             x.storage_offset(),
+        #             # x.clone(),
+        #         )
         return x
 
     return pack
@@ -33,8 +33,8 @@ def fct_get_pack(storage, no_save_list, sanity_check=False):
 
 def fct_get_unpack(storage):
     def unpack(x):
-        if isinstance(x, tuple):
-            return storage.ld[x[0]].data.as_strided_(*x[1:4])
+        # if isinstance(x, tuple):
+        #     return storage.ld[x[0]].data.as_strided_(*x[1:4])
 
         return x
 

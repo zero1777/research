@@ -19,7 +19,7 @@ llm_config = LLMConfig(
     vocab_size=2_000,
     context_size=64,
     dim_emb=512,
-    num_layers=4,
+    num_layers=8,
     num_heads=8,
     emb_dropout=0.0,
     ffd_bias=True,
@@ -77,16 +77,24 @@ print(f"model size: {size_all_mb:.3f}MB")
 
 #print(model)
 
-# loss_history = train(
-#     model,
-#     ds_train,
-#     batch_size=train_config.batch_size,
-#     lr=train_config.learning_rate,
-#     max_steps=train_config.max_steps,
-#     weight_decay=train_config.weight_decay,
-#     log_every=train_config.log_frequency,
-# )
+loss_history = train(
+    model,
+    ds_train,
+    batch_size=train_config.batch_size,
+    lr=train_config.learning_rate,
+    max_steps=train_config.max_steps,
+    weight_decay=train_config.weight_decay,
+    log_every=train_config.log_frequency,
+)
 
-inputs, labels = ds_train.get_batch(1)
-print(inputs)
-for_test = Asuta(model, inputs)
+# torch.cuda.reset_peak_memory_stats()
+# max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
+# print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
+
+# inputs, labels = ds_train.get_batch(64)
+
+# for_test = Asuta(model, inputs)
+
+# outputs = for_test(inputs)
+# peak_mem = torch.cuda.max_memory_allocated() - max_before
+# print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
