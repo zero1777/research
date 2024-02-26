@@ -9,7 +9,7 @@ import time
 from asuta import Asuta
 
 device = torch.device("cuda")
-batch_size = 100
+batch_size = 64
 
 net = models.vgg16().to(device)
 s = [torch.rand(50, 3, 128, 128).to(device)]

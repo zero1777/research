@@ -28,13 +28,13 @@ class Asuta(torch.nn.Module):
         # self.eviction_list = ["__13_input data", "__25_input data", "__28_input data", "__154_input data", "__47_input data", "__59_input data", "__63_input data", "__76_input data", "__80_input data", "__98_input data", "__242_input data", "__254_input data", "__211_input data", "__275_input data", "__293_input data", "__349_input data", "__406_input data", "__316_input data", "__332_input data", "__389_input data", "__121_input data", "__133_input data", "__137_input data", "__178_input data", "__194_input data"]
         # self.eviction_list = ["__540_out data"] # 389, 402
         # self.eviction_list = ["__13_input data",  "__25_input data",  "__28_input data",  "__47_input data",  "__59_input data",  "__63_input data",  "__76_input data",  "__80_input data",  "__98_input data",  "__121_input data",  "__133_input data",  "__137_input data",  "__150_input data",  "__154_input data",  "__166_out data",  "__178_input data",  "__190_input data",  "__194_input data",  "__207_input data",  "__211_input data",  "__223_out data",  "__242_input data",  "__254_input data",  "__258_input data",  "__271_input data",  "__275_input data",  "__293_input data",   "__316_input data",  "__328_input data",  "__332_input data",  "__345_input data",  "__349_input data",  "__373_input data",  "__385_input data",  "__389_input data",  "__402_input data",  "__406_input data",  "__418_out data",  "__430_input data",  "__442_input data",  "__446_input data",  "__459_input data",  "__463_input data" ]
-        # self.eviction_list = ["__13_input data",  "__25_input data",  "__28_input data",  "__47_input data",  "__59_input data",  "__63_input data",  "__76_input data",  "__80_input data",  "__98_input data",  "__121_input data",  "__133_input data",  "__137_input data",  "__150_input data",  "__154_input data",    "__178_input data",  "__190_input data",  "__194_input data",  "__207_input data",  "__211_input data",   "__242_input data",  "__254_input data",  "__258_input data",  "__271_input data",  "__275_input data",  "__293_input data",   "__316_input data",  "__328_input data",  "__332_input data",  "__345_input data",  "__349_input data",  "__373_input data",  "__385_input data",  "__389_input data",  "__402_input data",  "__406_input data",    "__430_input data",  "__442_input data",  "__446_input data",  "__459_input data",  "__463_input data",  "__495_input data",  "__507_input data",  "__511_input data",  "__524_input data",  "__528_input data",  "__546_input data",  "__569_input data",  "__581_input data",  "__585_input data",  "__598_input data",  "__602_input data",  "__627_input data",  "__639_input data",  "__643_input data",  "__656_input data",  "__660_input data",   "__684_input data"] # 11.40, 9.14 4.5
-        self.eviction_list = []
-        # self.eviction_list = [  "__47_input data","__54_input data","__61_input data",] # 2.43 # 5.79 "10.44" 11.59 13.79
+        self.eviction_list = ["__13_input data",  "__25_input data",  "__28_input data",  "__47_input data",  "__59_input data",  "__63_input data",  "__76_input data",  "__80_input data",  "__98_input data",  "__121_input data",  "__133_input data",  "__137_input data",  "__150_input data",  "__154_input data",    "__178_input data",  "__190_input data",  "__194_input data",  "__207_input data",  "__211_input data",   "__242_input data",  "__254_input data",  "__258_input data",  "__271_input data",  "__275_input data",  "__293_input data",   "__316_input data",  "__328_input data",  "__332_input data",  "__345_input data",  "__349_input data",  "__373_input data",  "__385_input data",  "__389_input data",  "__402_input data",  "__406_input data",    "__430_input data",  "__442_input data",  "__446_input data",  "__459_input data",  "__463_input data",  "__495_input data",  "__507_input data",  "__511_input data",  "__524_input data",  "__528_input data",  "__546_input data",  "__569_input data",  "__581_input data",  "__585_input data",  "__598_input data",  "__602_input data",  "__627_input data",  "__639_input data",  "__643_input data",  "__656_input data",  "__660_input data",   "__684_input data", "__696_input data",  "__700_input data",  "__713_input data",  "__717_input data", ] # 11.40, 9.14 4.54 4.38 ResNet50
+        # self.eviction_list = ["__13_input data",  "__25_input data",  "__28_input data",  "__47_input data",  "__59_input data",  "__63_input data",  "__76_input data",  "__80_input data",  "__98_input data",   "__92_out data",  "__121_input data",  "__133_input data",  "__137_input data",  "__150_input data",  "__154_input data",  "__166_out data",  "__178_input data",  "__190_input data",  "__194_input data",  "__207_input data",  "__211_input data",  "__223_out data",  "__242_input data",  "__254_input data",  "__258_input data",  "__271_input data",  "__275_input data",  "__293_input data",   "__287_out data",  "__316_input data",  "__328_input data",  "__332_input data",  "__345_input data",  "__349_input data",  "__361_out data",  "__373_input data",  "__385_input data",  "__389_input data",  "__402_input data",  "__406_input data",  "__418_out data",  "__430_input data",  "__442_input data",  "__446_input data",  "__459_input data",  "__463_input data",  "__475_out data",  "__495_input data",  "__507_input data",  "__511_input data",  "__524_input data",  "__528_input data",  "__546_input data",   "__540_out data",  "__569_input data",  "__581_input data",  "__585_input data",  "__598_input data",  "__602_input data",  "__614_out data",  "__627_input data",  "__639_input data",  "__643_input data",  "__656_input data",  "__660_input data",  "__672_out data",  "__684_input data",  ] #10.58
+        # self.eviction_list = [ "__39_input data", "__47_input data","__54_input data"] # 2.43 # 5.79 "10.44" 11.59 13.79 VGG16
         self.storage = Storage(self.device, self.graph.model, self.graph.dict_constants)
         self.logger = Logger("asuta.log", print_log=True)
         self.pcie_bw = 16 * 1024 * 1024 * 1024 # 16 GB/s
-        self.num_evict = 70
+        self.num_evict = 85
         self.mode = "r" # s, r
         self.version = "f" # s, f
         self.do_evict = False
@@ -164,6 +164,13 @@ class Asuta(torch.nn.Module):
 
         if self.do_evict:
             self.select_eviction_list()
+            
+        self.evict_tensor_mode = {}
+        for tensor in self.eviction_list:
+            if self.mode == "s":
+                self.evict_tensor_mode[tensor] = "swap"
+            else :
+                self.evict_tensor_mode[tensor] = "recompute"
 
     def select_eviction_list(self):
         list_kdn = []
@@ -193,8 +200,6 @@ class Asuta(torch.nn.Module):
         # self.eviction_list = list(self.sorted_rcost.keys())[:self.num_evict]
         self.eviction_list = list(self.swap_cost.keys())[:self.num_evict]
         self.logger.info(f'eviction_list: {self.eviction_list}')
-
-        
         
     def construct_op_list_v2(self):
         alive_datas = set() # current alive datas
@@ -285,9 +290,11 @@ class Asuta(torch.nn.Module):
 
         def regen_tensor(kdn_name):
             parent_op = evict_list[kdn_name]
-            for deps in parent_op.deps_global:
-                if deps.name in evict_list:
-                    regen_tensor(deps.name)
+            if self.evict_tensor_mode[kdn_name] == "recompute":
+                # print(f'recompute: {kdn_name}')
+                for deps in parent_op.deps_global:
+                    if deps.name in evict_list:
+                        regen_tensor(deps.name)
             cnode = C_op(parent_op, alive_datas=alive_datas.copy())
             cnode.is_swap = True if self.mode == "s" else False
             self.bwd_op_list_v2.append(cnode)
