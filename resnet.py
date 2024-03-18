@@ -6,10 +6,10 @@ import torch.optim as optim
 import rkgb.src as rkgb
 import time
 
-from asuta import Asuta
+from asuta import Asuta, new_model_with_constraint
 
 device = torch.device("cuda")
-batch_size = 64
+batch_size = 175
 
 net = models.vgg16().to(device)
 s = [torch.rand(50, 3, 128, 128).to(device)]
@@ -27,6 +27,7 @@ sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
 # sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
 # y = torch.rand(batch_size, 1000, 1, 1) 
 
+# new_net = new_model_with_constraint (net, sample)
 new_net  = Asuta(net, s)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)

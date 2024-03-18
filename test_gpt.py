@@ -12,9 +12,10 @@ model_name = "GPT2-small"
 print(f"--- Using Model: {model_name}\n")
 
 
-batch_size = 16
+batch_size = 8
 model = get_GPT(model=model_name).to(device)
 sample = [ torch.randint(0,600, [batch_size, 500]).to(device) ]
+# print(len(sample[0]))
 
 new_model = Asuta(model, sample)
 
