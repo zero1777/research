@@ -379,7 +379,7 @@ class Asuta(torch.nn.Module):
             list_kdn,
         )
 
-    def construct_profile_list(self):
+    def gen_profile_list(self):
         alive_datas = set() # current alive datas
         users = {} # dict: name -> num of users
 
@@ -473,67 +473,7 @@ class Asuta(torch.nn.Module):
             self.compile_list.append(
                 compile(ast.parse("\n".join(code)), "", "exec")
             )
-
-        # set input data
-        # print(f'profile_op_list: {[op.name for op in self.profile_op_list]}')
-
-    def run_profile(self, profile_inputs):
-        ss = time.time()
-        model_inputs = make_inputs(self.graph.model, profile_inputs, None)
-
-        for k, v in model_inputs.items():
-            self.pstorage.add_val(k, v)
-        
-        # execute init code
-        exec(self.graph.init_code, self.pstorage.gd, self.pstorage.ld)
-
-
-        for kg in self.graph.graph_list:
-            for kdn in kg.list_kdn:
-                tensor_val = torch.empty(
-                    0, device=self.device,
-                    requires_grad=kdn.info.requires_grad
-                )
-                self.pstorage.ld[kdn.main_target] = tensor_val
-
-        # for code in self.compile_list:
-        #     exec(code, self.pstorage.gd, self.pstorage.ld)
-
-        total_test = 0
-        delete_time = 0
-        self.data_overhead_v2 = {}
-        for i, code in enumerate(self.compile_list):
-            if i in self.idx_kdn_dict:
-                # print(f'{self.idx_kdn_dict[i].name}')
-                start_time = time.time()
                 
-                exec(code, self.pstorage.gd, self.pstorage.ld)
-                
-                end_time = time.time()
-                train_time = end_time - start_time
-                # print(f'training_time (sec): {train_time}')
-                
-                tmp = self.idx_kdn_dict[i].name.replace("fwd_", "")
-                tmp += " data"
-                self.data_overhead_v2[tmp] = train_time
-                total_test += train_time
-            else:    
-                s2 = time.time()
-                exec(code, self.pstorage.gd, self.pstorage.ld)
-                e2 = time.time()
-                delete_time += (e2-s2) 
-        
-        ee = time.time()
-        print(f'profile_time: {ee-ss}')
-
-        # assert len(self.data_overhead_v2) == len(self.idx_kdn_dict)
-        print(f'data overhead v2: {self.data_overhead_v2}')
-        # for b in self.data_overhead_v2.values():
-        #     total_test += b
-        print(f'total overhead v2: {total_test}')
-        print(f'delete time: {delete_time}')
-            
-
     def compile_function(self, evict):
         self.exec_list = []
         self.fwd_code = []

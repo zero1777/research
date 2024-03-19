@@ -34,13 +34,16 @@ class Modeler():
     def gen_eviction_plan(self, candidates):
         evict_list = []
         evict_tensor_mode = {}
+        swap_data = []
+
+        # all swap plan
         for data in candidates.keys():
             evict_list.append(data)
-            # evict_tensor_mode[data] = "swap"
-            if "out" in data or "__61_input" in data or "__54_input" in data:   
-                evict_tensor_mode[data] = "swap"
-            else:
-                evict_tensor_mode[data] = "recompute"
+            evict_tensor_mode[data] = "swap"
+            # if "out" in data or "__211_input" in data or "__80_input" in data or "__154_input" in data:
+            #     evict_tensor_mode[data] = "swap"
+            # else:
+            #     evict_tensor_mode[data] = "recompute"
 
         def rerun():
             self.debug_model.eviction_list = evict_list
@@ -56,17 +59,45 @@ class Modeler():
             peak_memory = self.debug_model.peak_memory_usage
             print(peak_memory)
 
+            return peak_memory
 
         # print(evict_list)
         # print(evict_tensor_mode)
 
-        rerun() 
+        def greedy_replace(peak_memory):
+            if peak_memory[-1] == "fw":
+                op = self.debug_model.fwd_op_list_evict[peak_memory[1]]
+            else:
+                op = self.debug_model.bwd_op_list_evict[peak_memory[1]]
+
+            for user_name in op.users_global:
+                if "fv" not in user_name and "input" not in user_name and "out" not in user_name: continue
+                assert "grad" in user_name
+                
+                user_name = user_name.replace("grad", "data")
+                swap_data.append(user_name)
+
+            for data in candidates.keys():
+                if "out" in data or data in swap_data:
+                    evict_tensor_mode[data] = "swap"
+                else:
+                    evict_tensor_mode[data] = "recompute"
+
+            # print(f"swap_data: {swap_data}")
+
+        def compare_lists(list1, list2):
+            if list1[1] == list2[1] and list1[2] == list2[2]: return True 
+            return False 
+
+        min_peak_mem = rerun() 
+        greedy_replace(min_peak_mem)
+
+        while True:
+            peak_mem = rerun()
+            if compare_lists(min_peak_mem, peak_mem):
+                break
+            greedy_replace(peak_mem)
         
-
-        def greedy_replace():
-            # op_name = 
-            pass
-
 
         return evict_list, evict_tensor_mode
 
@@ -110,13 +141,13 @@ class Modeler():
 
 if __name__ == "__main__":
     device = torch.device("cuda")
-    batch_size = 275
+    batch_size = 100
 
     net = models.resnet101().to(device)
     sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
 
-    net = models.vgg16().to(device)
-    sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
+    # net = models.vgg16().to(device)
+    # sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 
     md = Modeler(net, sample)
     md.build()
