@@ -6,12 +6,14 @@ class Modeler():
     def __init__(
         self,
         model,
-        inputs,
     ):
         super().__init__()
         self.model = model
+        
+
+    def build(self, inputs, mem_constraint=16):
         self.inputs = inputs
-        self.mem_constraint = 16
+        self.mem_constraint = mem_constraint
         self.batch_size = 0
 
         if isinstance(self.inputs, list):
@@ -21,29 +23,21 @@ class Modeler():
             self.batch_size = self.inputs.shape[0]
             print(self.inputs.shape)
 
-    def build(self, mem_constraint=16):
         self.debug_model = Asuta(self.model, self.inputs)
-        candidates = self.gen_candidates()
-        evict_list, evict_tensor_mode = self.gen_eviction_plan(candidates)
+        candidates, init_peak_memory = self.gen_candidates()
+        evict_list, evict_tensor_mode = self.gen_eviction_plan(candidates, init_peak_memory)
 
         # self.new_model = Asuta(self.model, self.inputs, evict_list, evict_tensor_mode) 
         # self.new_model.build()
 
         # return self.new_model
 
-    def gen_eviction_plan(self, candidates):
+    def gen_eviction_plan(self, candidates, init_peak_memory):
         evict_list = []
         evict_tensor_mode = {}
         swap_data = []
-
-        # all swap plan
-        for data in candidates.keys():
-            evict_list.append(data)
-            evict_tensor_mode[data] = "swap"
-            # if "out" in data or "__211_input" in data or "__80_input" in data or "__154_input" in data:
-            #     evict_tensor_mode[data] = "swap"
-            # else:
-            #     evict_tensor_mode[data] = "recompute"
+        base_candidates = {}
+        residual_candidates = []
 
         def rerun():
             self.debug_model.eviction_list = evict_list
@@ -88,16 +82,49 @@ class Modeler():
         def compare_lists(list1, list2):
             if list1[1] == list2[1] and list1[2] == list2[2]: return True 
             return False 
+        
+        
+        for data, mem in candidates.items():
+            if init_peak_memory > self.mem_constraint:
+                base_candidates[data] = mem
+                init_peak_memory -= mem/1000**3
+            else:
+                residual_candidates.append((data, mem))
+                
+        print(f'base_candidates: {base_candidates}')
+        print(f'residual_candidates: {residual_candidates}')
+
+        # test the base_candidates (all swap plan)
+        for data in base_candidates.keys():
+            evict_list.append(data)
+            evict_tensor_mode[data] = "swap"
+            # if "out" in data or "__211_input" in data or "__80_input" in data or "__154_input" in data:
+            #     evict_tensor_mode[data] = "swap"
+            # else:
+            #     evict_tensor_mode[data] = "recompute"
+        
+        test_peak_mem = rerun()[0]
+        while test_peak_mem > self.mem_constraint:
+            d, m = residual_candidates.pop(0)
+            print(f"evicting {d} with {m} memory")
+            base_candidates[d] = m
+            evict_list.append(d)
+            evict_tensor_mode[d] = "swap"
+            test_peak_mem = rerun()[0]
+        
 
         min_peak_mem = rerun() 
         greedy_replace(min_peak_mem)
 
+        tt = 0
         while True:
             peak_mem = rerun()
             if compare_lists(min_peak_mem, peak_mem):
                 break
             greedy_replace(peak_mem)
+            tt += 1
         
+        print(f"rerun {tt}")
 
         return evict_list, evict_tensor_mode
 
@@ -130,7 +157,7 @@ class Modeler():
             if "fv" not in data and "input" not in data and "out" not in data: continue
             candidates[data] = mem
         
-        return candidates
+        return candidates, peak_memory[0]
             
         # print(candidates)
         # print(f'fwd_op: {[op.name for op in self.debug_model.fwd_op_list]}')
@@ -149,6 +176,6 @@ if __name__ == "__main__":
     # net = models.vgg16().to(device)
     # sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 
-    md = Modeler(net, sample)
-    md.build()
+    md = Modeler(net)
+    md.build(sample, 9)
     
