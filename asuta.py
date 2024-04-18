@@ -54,21 +54,27 @@ class Asuta(torch.nn.Module):
             self.evict_tensor_mode = evict_tensor_mode
 
         print(f'{self.mode}, {self.version}')
+
+        # self.eviction_list = ['__8_fv data', '__24__0 data', '__27_scale data', '__38_fv data', '__41_fv data', '__44_fv data', '__45_attn_scores data', '__47_attn_scores0 data', '__50_input data', '__52_fv data', '__53_fv data', '__58__0 data', '__61_scale data', '__72_fv data', '__75_fv data', '__78_fv data', '__79_attn_scores data', '__81_attn_scores0 data', '__84_input data', '__86_fv data', '__87_fv data', '__93__0 data', '__96_scale data', '__107_fv data', '__110_fv data', '__113_fv data', '__114_attn_scores data', '__116_attn_scores0 data', '__119_input data', '__121_fv data', '__122_fv data', '__127__0 data', '__130_scale data', '__141_fv data', '__144_fv data', '__147_fv data', '__148_attn_scores data', '__150_attn_scores0 data', '__153_input data', '__155_fv data', '__156_fv data', '__161__0 data', '__164_scale data', '__175_fv data', '__178_fv data', '__181_fv data', '__182_attn_scores data', '__184_attn_scores0 data', '__187_input data', '__189_fv data', '__190_fv data', '__196__0 data', '__199_scale data', '__210_fv data', '__213_fv data', '__216_fv data', '__217_attn_scores data', '__219_attn_scores0 data', '__222_input data', '__224_fv data', '__225_fv data', '__230__0 data', '__233_scale data', '__244_fv data', '__247_fv data', '__250_fv data', '__251_attn_scores data', '__253_attn_scores0 data', '__256_input data', '__258_fv data', '__259_fv data', '__264__0 data', '__267_scale data', '__278_fv data', '__281_fv data', '__284_fv data', '__285_attn_scores data', '__287_attn_scores0 data', '__290_input data', '__292_fv data', '__293_fv data', '__295__0 data', '__298_scale data']
+        # self.eviction_list = []
+        # self.evict_tensor_mode = {'__8_fv data': 'swap', '__24__0 data': 'swap', '__27_scale data': 'swap', '__38_fv data': 'swap', '__41_fv data': 'swap', '__44_fv data': 'swap', '__45_attn_scores data': 'swap', '__47_attn_scores0 data': 'swap', '__50_input data': 'swap', '__52_fv data': 'swap', '__53_fv data': 'swap', '__58__0 data': 'swap', '__61_scale data': 'swap', '__72_fv data': 'swap', '__75_fv data': 'swap', '__78_fv data': 'swap', '__79_attn_scores data': 'swap', '__81_attn_scores0 data': 'swap', '__84_input data': 'swap', '__86_fv data': 'swap', '__87_fv data': 'swap', '__93__0 data': 'swap', '__96_scale data': 'swap', '__107_fv data': 'swap', '__110_fv data': 'swap', '__113_fv data': 'swap', '__114_attn_scores data': 'swap', '__116_attn_scores0 data': 'swap', '__119_input data': 'swap', '__121_fv data': 'swap', '__122_fv data': 'swap', '__127__0 data': 'swap', '__130_scale data': 'swap', '__141_fv data': 'swap', '__144_fv data': 'swap', '__147_fv data': 'swap', '__148_attn_scores data': 'swap', '__150_attn_scores0 data': 'swap', '__153_input data': 'swap', '__155_fv data': 'swap', '__156_fv data': 'swap', '__161__0 data': 'swap', '__164_scale data': 'swap', '__175_fv data': 'swap', '__178_fv data': 'swap', '__181_fv data': 'swap', '__182_attn_scores data': 'swap', '__184_attn_scores0 data': 'swap', '__187_input data': 'swap', '__189_fv data': 'swap', '__190_fv data': 'swap', '__196__0 data': 'swap', '__199_scale data': 'swap', '__210_fv data': 'swap', '__213_fv data': 'swap', '__216_fv data': 'swap', '__217_attn_scores data': 'swap', '__219_attn_scores0 data': 'swap', '__222_input data': 'swap', '__224_fv data': 'swap', '__225_fv data': 'swap', '__230__0 data': 'swap', '__233_scale data': 'swap', '__244_fv data': 'swap', '__247_fv data': 'swap', '__250_fv data': 'swap', '__251_attn_scores data': 'swap', '__253_attn_scores0 data': 'swap', '__256_input data': 'swap', '__258_fv data': 'swap', '__259_fv data': 'swap', '__264__0 data': 'swap', '__267_scale data': 'swap', '__278_fv data': 'swap', '__281_fv data': 'swap', '__284_fv data': 'swap', '__285_attn_scores data': 'swap', '__287_attn_scores0 data': 'swap', '__290_input data': 'swap', '__292_fv data': 'swap', '__293_fv data': 'swap', '__295__0 data': 'swap', '__298_scale data': 'swap'}
+        
         
         self.gen_op_list()
-        self.gen_op_list_evict()
-        self.compile_function(evict=True)
+        # self.gen_op_list_evict()
+        self.compile_function(evict=False)
 
-        mem_cnt = 0
-        print(f'eviction_list: ', end="")
-        for op in self.eviction_list:
-            # print(f'({op}, {self.data_memory[op]})', end=" ")
-            print(f'\"{op}\", ', end=" ")
-            mem_cnt += self.data_memory[op]
-        print(f'\nmem_cnt: {mem_cnt}')
+        # mem_cnt = 0
+        # print(f'eviction_list: ', end="")
+        # for op in self.eviction_list:
+        #     # print(f'({op}, {self.data_memory[op]})', end=" ")
+        #     print(f'\"{op}\", ', end=" ")
+        #     mem_cnt += self.data_memory[op]
+        # print(f'\nmem_cnt: {mem_cnt}')
 
     def build(self):
-        pass
+        self.gen_op_list_evict()
+        self.compile_function(evict=True)
 
     def gen_op_list(self):
         self.tmp_fwd_op_list = []
@@ -173,7 +179,7 @@ class Asuta(torch.nn.Module):
         self.logger.info(f'compute_overhead: {self.compute_overhead}')
         self.logger.info(f'total_overhead: {self.total_overhead}')
 
-        print(f'data memory: {self.data_memory}')
+        # print(f'data memory: {self.data_memory}')
         # print(f'data overhead: {self.data_overhead}')
         # print(f'compute overhead: {self.compute_overhead}')
         # print(f'total overhead: {self.total_overhead}')
@@ -207,7 +213,7 @@ class Asuta(torch.nn.Module):
             self.recompute_cost[kdn.name] = self.data_memory[kdn.name] / self.data_overhead[kdn.name]
             self.swap_cost[kdn.name] = self.data_memory[kdn.name] / self.pcie_bw
 
-        print(f'cnt: {cnt}')
+        # print(f'cnt: {cnt}')
 
         self.sorted_rcost = dict(sorted(self.swap_cost.items(), key=lambda item: item[1], reverse=True))
         # print(f'sorted_rcost: {self.sorted_rcost}')
@@ -352,7 +358,7 @@ class Asuta(torch.nn.Module):
             elif isinstance(op, D_op):
                 alive_datas.remove(op.name)
                 if op.name in evict_list:
-                    print(f'kdn already in evict {op.name}')
+                    # print(f'kdn already in evict {op.name}')
                     continue
 
             self.bwd_op_list_evict.append(op)
@@ -361,9 +367,9 @@ class Asuta(torch.nn.Module):
             
         self.logger.debug(f'fwd_op_list_evict: {[op.name for op in self.fwd_op_list_evict]}')
         self.logger.debug(f'bwd_op_list_evict: {[op.name for op in self.bwd_op_list_evict]}')
-        print(f'fwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.fwd_op_list_evict)]}')
-        print(f'\n')
-        print(f'bwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.bwd_op_list_evict)]}')
+        # print(f'fwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.fwd_op_list_evict)]}')
+        # print(f'\n')
+        # print(f'bwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.bwd_op_list_evict)]}')
         # print(f'bwd_op_list_evict: {[[i, op.name] for i, op in enumerate(self.bwd_op_list_evict)]}')
             
         list_kdn = []
@@ -515,7 +521,7 @@ class Asuta(torch.nn.Module):
                 compile(ast.parse("\n".join(code_list)), "", "exec")
             )
         
-        print("---bwd---")
+        # print("---bwd---")
         for code_list in self.bwd_exec_list:
             # print(code_list)
             self.bwd_compile_code.append(
@@ -566,7 +572,7 @@ class Asuta(torch.nn.Module):
                 alloc_mem = torch.cuda.memory_allocated()/1000/1000/1000
                 if self.peak_memory_usage[0] < max_mem:
                     self.peak_memory_usage = [max_mem, tt, 'fw']
-                print(f'forward: {tt}, {alloc_mem}, {max_mem}')
+                # print(f'forward: {tt}, {alloc_mem}, {max_mem}')
                 tt += 1
         
 
@@ -588,7 +594,7 @@ class Asuta(torch.nn.Module):
                 alloc_mem = torch.cuda.memory_allocated()/1000/1000/1000
                 if self.peak_memory_usage[0] < max_mem:
                     self.peak_memory_usage = [max_mem, tt, 'bw']
-                print(f'backward: {tt}, {alloc_mem}, {max_mem}')
+                # print(f'backward: {tt}, {alloc_mem}, {max_mem}')
                 tt += 1
 
         # for l in self.bwd_fct_list:

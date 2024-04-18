@@ -14,7 +14,6 @@ from helpers.trainer import train
 from helpers.config import LLMConfig, TrainingConfig
 
 from asuta import Asuta
-from modeler import Modeler
 
 llm_config = LLMConfig(
     vocab_size=2_000,
@@ -28,8 +27,10 @@ llm_config = LLMConfig(
 )
 
 train_config = TrainingConfig(
-    retrain_tokenizer=True, batch_size=64, learning_rate=1e-4, weight_decay=1e-5, max_steps=10, log_frequency=1
+    retrain_tokenizer=True, batch_size=300, learning_rate=1e-4, weight_decay=1e-5, max_steps=10, log_frequency=1
 )
+
+with_optimizer = False
 
 input_file = "tinyshakespeare.txt"
 output_file = Path(input_file).with_suffix(".model")
@@ -78,52 +79,25 @@ print(f"model size: {size_all_mb:.3f}MB")
 
 #print(model)
 
-# loss_history = train(
-#     model,
-#     ds_train,
-#     batch_size=train_config.batch_size,
-#     lr=train_config.learning_rate,
-#     max_steps=train_config.max_steps,
-#     weight_decay=train_config.weight_decay,
-#     log_every=train_config.log_frequency,
-# )
+loss_history = train(
+    model,
+    ds_train,
+    batch_size=train_config.batch_size,
+    lr=train_config.learning_rate,
+    max_steps=train_config.max_steps,
+    weight_decay=train_config.weight_decay,
+    log_every=train_config.log_frequency,
+    with_optimizer=with_optimizer
+)
 
 # torch.cuda.reset_peak_memory_stats()
 # max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
 # print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
-inputs, y = ds_train.get_batch(200)
-x, y = ds_train.get_batch(200)
-x = [x.to("cuda")]
-inputs = [inputs.to("cuda")]
-model = model.to("cuda")
+# inputs, labels = ds_train.get_batch(64)
 
-# inputs = [torch.randint(0, 600, [100, 64]).to("cuda")]
-
-# new_model = Asuta(model, inputs)
-
-
-md = Modeler(model)
-new_model = md.build(inputs, 11.76, "default")
-
-del md
-torch.cuda.empty_cache()
-
-# torch.cuda.reset_peak_memory_stats()
-# max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
-# print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
-
-# for _ in range(3):
-#     outputs = new_model(*x)
-#     loss = outputs.mean()
-#     loss.backward()
-#     new_model.backward()
-
-#     peak_mem = torch.cuda.max_memory_allocated() - max_before
-
-# print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
-# 9.1833
+# for_test = Asuta(model, inputs)
 
 # outputs = for_test(inputs)
-# peak_mem = torch.cuda.max_memory_allocated() 
+# peak_mem = torch.cuda.max_memory_allocated() - max_before
 # print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')

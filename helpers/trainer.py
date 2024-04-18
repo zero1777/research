@@ -28,13 +28,14 @@ def train(
     weight_decay: float = 1e-2,
     device: str = DEVICE,
     log_every: int = 10,
+    with_optimizer: bool = True,
 ) -> defaultdict:
     metrics_tracker = defaultdict(list)
     # val_loss_tracker = defaultdict(list)
 
     model.to(device)
     optimizer = Adam(model.parameters(), lr=10 * lr, weight_decay=weight_decay)
-    scheduler = CosineAnnealingLR(optimizer, T_max=max_steps, eta_min=lr, verbose=False)
+    # scheduler = CosineAnnealingLR(optimizer, T_max=max_steps, eta_min=lr, verbose=False)
     model.train()
     
     torch.cuda.reset_peak_memory_stats()
@@ -42,24 +43,28 @@ def train(
     print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
     for step in range(max_steps):
-        optimizer.zero_grad(set_to_none=True)
+        if with_optimizer:
+            optimizer.zero_grad(set_to_none=True)
 
         inputs, labels = ds_train.get_batch(batch_size)
         inputs, labels = inputs.to(device), labels.to(device)
         logits = model(inputs)
 
-        loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-1)
+        # loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-1)
+        loss = logits.mean()
         loss.backward()
 
-        optimizer.step()
-        scheduler.step()
+        if with_optimizer:
+            optimizer.step()
+        # scheduler.step()
 
-        metrics_tracker["train_loss"].append(loss.detach().cpu().item())
-        if step % log_every == 0 or step == max_steps - 1:
-            log(step, max_steps, scheduler.get_last_lr()[-1], metrics_tracker)
+        print(f'Step: {step}')
+        # metlossrics_tracker["train_loss"].append(loss.detach().cpu().item())
+        # if step % log_every == 0 or step == max_steps - 1:
+        #     log(step, max_steps, scheduler.get_last_lr()[-1], metrics_tracker)
 
         # val_loss = evaluate(model, dl_val, device)
-        # val_loss_tracker["val_loss"].append(val_loss)
+        # val__tracker["val_loss"].append(val_loss)
 
     peak_mem = torch.cuda.max_memory_allocated() - max_before
     print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')

@@ -6,19 +6,23 @@ import torch.optim as optim
 import rkgb.src as rkgb
 import time
 
-from asuta import Asuta, new_model_with_constraint
+from asuta import Asuta
 
 device = torch.device("cuda")
 batch_size = 175
 
-net = models.vgg16().to(device)
-s = [torch.rand(50, 3, 128, 128).to(device)]
-sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
+# net = models.vgg16().to(device)
+# s = [torch.rand(50, 3, 128, 128).to(device)]
+# sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 
 net = models.resnet50().to(device)
 s = [torch.rand(128, 3, 224, 224).to(device)]
 sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
-# y = torch.randint(1, 91, (batch_size, ))
+y = torch.randint(1, 91, (batch_size, ))
+
+# net = models.inception_v3().to(device)
+# s = [torch.rand(128, 3, 299, 299).to(device)]
+
 
 # p = [torch.rand(100, 3, 224, 224).to(device)]
 # net = models.squeezenet1_1().to(device)
@@ -49,7 +53,7 @@ for _ in range(repeat):
 
     start_time = time.time()
     # outputs = net(sample[0])
-    outputs = new_net(*sample)
+    outputs = new_net(*s)
 
     # loss = criterion(outputs, y.to(device))
     loss = outputs.mean()

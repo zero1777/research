@@ -98,8 +98,8 @@ class SelfAttention(Module):
         self.proj_out = Linear(dim_v, dim_v, bias=False)
 
         # Build the causal mask, masking upper triangular part of attention scores
-        causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
-        self.register_buffer("causal_mask", causal_mask)
+        # causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
+        # self.register_buffer("causal_mask", causal_mask)
 
     def forward(self, x: Tensor, return_scores: bool = False):
         # projects input to Q, K, V spaces
@@ -111,9 +111,9 @@ class SelfAttention(Module):
         attn_scores = q @ torch.transpose(k, 2, 1)  # (bs, seq_len, seq_len)
 
         # Fill the upper triangular part of the attention scores with -inf to inhibit them in the softmax
-        if self.causal:
-            m_inf = -torch.finfo(attn_scores.dtype).max
-            attn_scores.masked_fill_(self.causal_mask[None, ...], m_inf)
+        # if self.causal:
+        #     m_inf = -torch.finfo(attn_scores.dtype).max
+        #     attn_scores.masked_fill_(self.causal_mask[None, ...], m_inf)
 
         attn_scores = torch.softmax(attn_scores * self.dim_k**-0.5, dim=-1)  # (bs, seq_len, seq_len)
         out = self.proj_out(attn_scores @ v)  # (bs, seq_len, dim_v)
@@ -211,11 +211,11 @@ class FeedForward(Module):
         self._layers = Sequential()
         for _ in range(num_hidden - 1):
             self._layers.append(Linear(dim_in, dim_hidden, bias=bias))
-            if normalize:
-                self._layers.append(RMSNorm(dim_hidden))
+            # if normalize:
+            #     self._layers.append(RMSNorm(dim_hidden))
             self._layers.append(SwiGLU(dim_hidden))
-            if dropout > 0.0:
-                self._layers.append(Dropout(dropout))
+            # if dropout > 0.0:
+            #     self._layers.append(Dropout(dropout))
             dim_in = dim_hidden
 
         self._layers.append(Linear(dim_in, dim_hidden, bias=bias))
@@ -242,14 +242,15 @@ class TransformerBlock(Module):
         # - RMS pre-normalization instead of layer normalization
         # - SwiGLU activation for the feedforward
         self.norm_1 = RMSNorm(dim_emb)
-        self.multihead_attn = MultiHeadAttention(seq_len, attn_num_heads, dim_emb, causal=attn_causal)
+        self.multihead_attn = MultiHeadAttention(seq_len, attn_num_heads, dim_emb)
         self.norm_2 = RMSNorm(dim_emb)
         self.feed_forward = FeedForward(
             dim_emb, dim_emb, num_hidden=ffd_num_hidden, bias=ffd_bias, dropout=ffd_dropout
         )
+        self.singlehead_attn = SelfAttention(seq_len, dim_emb)
 
     def forward(self, x: Tensor):
         # x = x + self.multihead_attn(self.norm_1(x))  # (bs, seq_len, dim_in)
-        x = x + self.feed_forward(self.norm_2(x))  # (bs, seq_len, dim_in)
-
+        x = x + self.singlehead_attn(self.norm_1(x))  # (bs, seq_len, dim_in)
+        # x = x + self.feed_forward(x)  # (bs, seq_len, dim_in)
         return x  # (bs, seq_len, dim_in)
