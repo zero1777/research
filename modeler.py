@@ -316,7 +316,7 @@ if __name__ == "__main__":
     sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 
     md = Modeler(net)
-    new_model = md.build(s, 4.32, "default")
+    new_model = md.build(s, 5, "default")
 
     del md
     torch.cuda.empty_cache()

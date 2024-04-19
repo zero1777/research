@@ -9,15 +9,15 @@ import time
 from asuta import Asuta
 
 device = torch.device("cuda")
-batch_size = 175
+batch_size = 300
 
 # net = models.vgg16().to(device)
 # s = [torch.rand(50, 3, 128, 128).to(device)]
 # sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 
 net = models.resnet50().to(device)
-s = [torch.rand(128, 3, 224, 224).to(device)]
-sample = [torch.rand(batch_size, 3, 224, 224).to(device)]
+s = [torch.rand(300, 3, 128, 128).to(device)]
+sample = [torch.rand(batch_size, 3, 128, 128).to(device)]
 y = torch.randint(1, 91, (batch_size, ))
 
 # net = models.inception_v3().to(device)
@@ -41,7 +41,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 # ee = time.time()
 # print(f'init_time (sec): {ee-ss}')
 
-repeat = 1
+repeat = 3
 running_loss = 0.0
 
 torch.cuda.reset_peak_memory_stats()
@@ -49,17 +49,17 @@ max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
 print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
 for _ in range(repeat):
-    optimizer.zero_grad()
+    # optimizer.zero_grad()
 
     start_time = time.time()
     # outputs = net(sample[0])
-    outputs = new_net(*s)
+    outputs = new_net(*sample)
 
     # loss = criterion(outputs, y.to(device))
     loss = outputs.mean()
     loss.backward()
     new_net.backward() 
-    optimizer.step()
+    # optimizer.step()
 
     # running_loss += loss.item()
     # print(f'loss: {running_loss}')
@@ -67,7 +67,7 @@ for _ in range(repeat):
     
     end_time = time.time()
     train_time = end_time - start_time
-    print(f'training_time (sec): {train_time}')
+    # print(f'training_time (sec): {train_time}')
 
     peak_mem = torch.cuda.max_memory_allocated() - max_before
     print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
