@@ -7,4 +7,3 @@
 - v1: Prototype
   - Able to train w/ the custom class
   - Swap & Recompute features
-- v2: 
