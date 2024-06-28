@@ -30,6 +30,8 @@ class Asuta(torch.nn.Module):
         if evict_list is not None:
             self.eviction_list = evict_list
             
+       
+
         # self.eviction_list = ["__13_input data", "__25_input data", "__28_input data", "__154_input data", "__47_input data", "__59_input data", "__63_input data", "__76_input data", "__80_input data", "__98_input data", "__242_input data", "__254_input data", "__211_input data", "__275_input data", "__293_input data", "__349_input data", "__406_input data", "__316_input data", "__332_input data", "__389_input data", "__121_input data", "__133_input data", "__137_input data", "__178_input data", "__194_input data"]
         # self.eviction_list = ["__540_out data"] # 389, 402
         # self.eviction_list = ["__13_input data",  "__25_input data",  "__28_input data",  "__47_input data",  "__59_input data",  "__63_input data",  "__76_input data",  "__80_input data",  "__98_input data",  "__121_input data",  "__133_input data",  "__137_input data",  "__150_input data",  "__154_input data",  "__166_out data",  "__178_input data",  "__190_input data",  "__194_input data",  "__207_input data",  "__211_input data",  "__223_out data",  "__242_input data",  "__254_input data",  "__258_input data",  "__271_input data",  "__275_input data",  "__293_input data",   "__316_input data",  "__328_input data",  "__332_input data",  "__345_input data",  "__349_input data",  "__373_input data",  "__385_input data",  "__389_input data",  "__402_input data",  "__406_input data",  "__418_out data",  "__430_input data",  "__442_input data",  "__446_input data",  "__459_input data",  "__463_input data" ]
@@ -53,26 +55,49 @@ class Asuta(torch.nn.Module):
         if evict_tensor_mode is not None:
             self.evict_tensor_mode = evict_tensor_mode
 
+        # self.eviction_list = ['__13_input data', '__25_input data', '__28_input data', '__47_input data', '__59_input data', '__63_input data', '__76_input data', '__80_input data', '__98_input data', '__92_out data', '__121_input data', '__133_input data', '__137_input data', '__150_input data', '__154_input data', '__166_out data', '__178_input data', '__190_input data', '__194_input data', '__207_input data', '__211_input data', '__223_out data', '__242_input data', '__254_input data', '__258_input data', '__271_input data', '__275_input data', '__293_input data', '__287_out data', '__316_input data', '__328_input data', '__332_input data', '__345_input data', '__349_input data', '__361_out data', '__373_input data', '__385_input data', '__389_input data', '__402_input data', '__406_input data', '__418_out data', '__430_input data', '__442_input data', '__446_input data', '__459_input data', '__463_input data', '__475_out data', '__495_input data', '__507_input data', '__511_input data', '__524_input data', '__528_input data', '__546_input data', '__540_out data', '__569_input data', '__581_input data', '__585_input data', '__598_input data', '__602_input data', '__614_out data', '__627_input data', '__639_input data', '__643_input data', '__656_input data', '__660_input data', '__672_out data', '__684_input data', '__696_input data', '__700_input data', '__713_input data', '__717_input data', '__729_out data', '__741_input data', '__753_input data', '__757_input data', '__770_input data', '__774_input data', '__786_out data', '__798_input data', '__810_input data', '__814_input data', '__827_input data', '__831_input data', '__843_out data', '__861_input data', '__873_input data', '__877_input data', '__890_input data', '__894_input data', '__912_input data', '__906_out data', '__935_input data', '__947_input data', '__951_input data', '__964_input data', '__968_input data', '__980_out data', '__992_input data', '__1004_input data', '__1008_input data', '__1021_input data', '__1025_input data']
+        # self.evict_tensor_mode = {'__13_input data' : 'swap', '__25_input data' : 'swap', '__28_input data' : 'swap', '__47_input data' : 'swap', '__59_input data' : 'swap', '__63_input data' : 'swap', '__76_input data' : 'swap', '__80_input data' : 'swap', '__98_input data' : 'swap', '__92_out data' : 'swap', '__121_input data' : 'swap', '__133_input data' : 'swap', '__137_input data' : 'swap', '__150_input data' : 'swap', '__154_input data' : 'swap', '__166_out data' : 'swap', '__178_input data' : 'swap', '__190_input data' : 'swap', '__194_input data' : 'swap', '__207_input data' : 'swap', '__211_input data' : 'swap', '__223_out data' : 'swap', '__242_input data' : 'swap', '__254_input data' : 'swap', '__258_input data' : 'swap', '__271_input data' : 'swap', '__275_input data' : 'swap', '__293_input data' : 'swap', '__287_out data' : 'swap', '__316_input data' : 'swap', '__328_input data' : 'swap', '__332_input data' : 'swap', '__345_input data' : 'swap', '__349_input data' : 'swap', '__361_out data' : 'swap', '__373_input data' : 'swap', '__385_input data' : 'swap', '__389_input data' : 'swap', '__402_input data' : 'swap', '__406_input data' : 'swap', '__418_out data' : 'swap', '__430_input data' : 'swap', '__442_input data' : 'swap', '__446_input data' : 'swap', '__459_input data' : 'swap', '__463_input data' : 'swap', '__475_out data' : 'swap', '__495_input data' : 'swap', '__507_input data' : 'swap', '__511_input data' : 'swap', '__524_input data' : 'swap', '__528_input data' : 'swap', '__546_input data' : 'swap', '__540_out data' : 'swap', '__569_input data' : 'swap', '__581_input data' : 'swap', '__585_input data' : 'swap', '__598_input data' : 'swap', '__602_input data' : 'swap', '__614_out data' : 'swap', '__627_input data' : 'swap', '__639_input data' : 'swap', '__643_input data' : 'swap', '__656_input data' : 'swap', '__660_input data' : 'swap', '__672_out data' : 'swap', '__684_input data' : 'swap', '__696_input data' : 'swap', '__700_input data' : 'swap', '__713_input data' : 'swap', '__717_input data' : 'swap', '__729_out data' : 'swap', '__741_input data' : 'swap', '__753_input data' : 'swap', '__757_input data' : 'swap', '__770_input data' : 'swap', '__774_input data' : 'swap', '__786_out data' : 'swap', '__798_input data' : 'swap', '__810_input data' : 'swap', '__814_input data' : 'swap', '__827_input data' : 'swap', '__831_input data' : 'swap', '__843_out data' : 'swap', '__861_input data' : 'swap', '__873_input data' : 'swap', '__877_input data' : 'swap', '__890_input data' : 'swap', '__894_input data' : 'swap', '__912_input data' : 'swap', '__906_out data' : 'swap', '__935_input data' : 'swap', '__947_input data' : 'swap', '__951_input data' : 'swap', '__964_input data' : 'swap', '__968_input data' : 'swap', '__980_out data' : 'swap', '__992_input data' : 'swap', '__1004_input data' : 'swap', '__1008_input data' : 'swap', '__1021_input data' : 'swap', '__1025_input data' : 'swap',}
+        
         # print(f'{self.mode}, {self.version}')
 
-        # self.eviction_list = ['__13_input data', '__25_input data', '__28_input data', '__47_input data', '__59_input data', '__63_input data', '__76_input data', '__80_input data', '__98_input data',  '__121_input data', '__133_input data', '__137_input data', '__150_input data',]
-        # # '__271_input data', '__275_input data', '__293_input data', '__316_input data', '__328_input data', '__332_input data', '__345_input data', '__349_input data', '__373_input data', '__385_input data', '__389_input data', '__402_input data', '__406_input data',  '__430_input data', '__442_input data', '__446_input data', "__459_input data", "__463_input data", 
+        # self.eviction_list = ['__8_fv data', '__38_fv data', '__41_fv data', '__44_fv data', '__50_input data', '__52_fv data', '__53_fv data', '__72_fv data', '__75_fv data', '__78_fv data', '__84_input data', '__86_fv data', '__87_fv data', '__107_fv data', '__110_fv data', '__113_fv data', '__119_input data', '__121_fv data', '__122_fv data', '__141_fv data', '__144_fv data', '__147_fv data', '__153_input data', '__155_fv data', '__156_fv data', '__175_fv data', '__178_fv data', '__181_fv data', '__187_input data', '__189_fv data', '__190_fv data', '__210_fv data', '__213_fv data', '__216_fv data', '__222_input data', '__224_fv data', '__225_fv data', '__244_fv data', '__247_fv data', '__250_fv data', '__256_input data', '__258_fv data', '__259_fv data', '__278_fv data', '__281_fv data', '__284_fv data', '__290_input data', '__292_fv data']   
 
-        # self.evict_tensor_mode = {'__13_input data': 'swap', '__25_input data': 'swap', '__28_input data': 'swap', '__47_input data': 'swap', '__59_input data': 'swap', '__63_input data': 'swap', '__76_input data': 'swap', '__80_input data': 'swap', '__98_input data': 'swap', '__121_input data': 'swap', '__133_input data': 'swap', '__137_input data': 'swap', '__150_input data': 'swap',}
-        # '__271_input data': 'swap', '__275_input data': 'swap', '__293_input data': 'swap',  '__316_input data': 'swap', '__328_input data': 'swap', '__332_input data': 'swap', '__345_input data': 'swap', '__349_input data': 'swap',  '__373_input data': 'swap', '__385_input data': 'swap', '__389_input data': 'swap', '__402_input data': 'swap', '__406_input data': 'swap',  '__430_input data': 'swap', '__442_input data': 'swap', '__446_input data': 'swap', "__459_input data": 'swap', "__463_input data": 'swap',
-        
+        # self.evict_tensor_mode = {'__8_fv data': 'swap', '__38_fv data': 'swap', '__41_fv data': 'swap', '__44_fv data': 'swap', '__50_input data': 'swap', '__52_fv data': 'swap', '__53_fv data': 'swap', '__72_fv data': 'swap', '__75_fv data': 'swap', '__78_fv data': 'swap', '__84_input data': 'swap', '__86_fv data': 'swap', '__87_fv data': 'swap', '__107_fv data': 'swap', '__110_fv data': 'swap', '__113_fv data': 'swap', '__119_input data': 'swap', '__121_fv data': 'swap', '__122_fv data': 'swap', '__141_fv data': 'swap', '__144_fv data': 'swap', '__147_fv data': 'swap', '__153_input data': 'swap', '__155_fv data': 'swap', '__156_fv data': 'swap', '__175_fv data': 'swap', '__178_fv data': 'swap', '__181_fv data': 'swap', '__187_input data': 'swap', '__189_fv data': 'swap', '__190_fv data': 'swap', '__210_fv data': 'swap', '__213_fv data': 'swap', '__216_fv data': 'swap', '__222_input data': 'swap', '__224_fv data': 'swap', '__225_fv data': 'swap', '__244_fv data': 'swap', '__247_fv data': 'swap', '__250_fv data': 'swap', '__256_input data': 'swap', '__258_fv data': 'swap', '__259_fv data': 'swap', '__278_fv data': 'swap', '__281_fv data': 'swap', '__284_fv data': 'swap', '__290_input data': 'swap', '__292_fv data': 'swap'}
+
+        # self.eviction_list = ['__13_input data', '__25_input data', '__28_input data', '__47_input data', '__59_input data', '__63_input data', '__76_input data', '__80_input data', '__98_input data', '__92_out data', '__121_input data', '__133_input data', '__137_input data', '__150_input data', '__154_input data', '__166_out data', '__178_input data', '__190_input data', '__194_input data', '__207_input data', '__211_input data', '__223_out data', '__242_input data', '__254_input data', '__258_input data', '__271_input data', '__275_input data', '__293_input data', '__287_out data', '__316_input data', '__328_input data', '__332_input data', '__345_input data', '__349_input data', '__361_out data', '__373_input data', '__385_input data', '__389_input data', '__402_input data', '__406_input data', '__418_out data', '__430_input data', '__442_input data', '__446_input data', '__459_input data', '__463_input data', '__475_out data', '__495_input data', '__507_input data', '__511_input data',]
+
+        # self.evict_tensor_mode = {'__13_input data': 'recompute', '__25_input data': 'recompute', '__28_input data': 'recompute', '__47_input data': 'recompute', '__59_input data': 'recompute', '__63_input data': 'recompute', '__76_input data': 'recompute', '__80_input data': 'recompute', '__98_input data': 'recompute', '__92_out data': 'swap', '__121_input data': 'recompute', '__133_input data': 'recompute', '__137_input data': 'recompute', '__150_input data': 'recompute', '__154_input data': 'recompute', '__166_out data': 'swap', '__178_input data': 'recompute', '__190_input data': 'recompute', '__194_input data': 'recompute', '__207_input data': 'recompute', '__211_input data': 'recompute', '__223_out data': 'swap', '__242_input data': 'recompute', '__254_input data': 'recompute', '__258_input data': 'recompute', '__271_input data': 'recompute', '__275_input data': 'recompute', '__293_input data': 'recompute', '__287_out data': 'swap', '__316_input data': 'recompute', '__328_input data': 'recompute', '__332_input data': 'recompute', '__345_input data': 'recompute', '__349_input data': 'recompute', '__361_out data': 'swap', '__373_input data': 'recompute', '__385_input data': 'recompute', '__389_input data': 'recompute', '__402_input data': 'recompute', '__406_input data': 'recompute', '__418_out data': 'recompute', '__430_input data': 'recompute', '__442_input data': 'recompute', '__446_input data': 'recompute', '__459_input data': 'recompute', '__463_input data': 'recompute', '__475_out data': 'recompute', '__495_input data': 'recompute', '__507_input data': 'recompute', '__511_input data': 'recompute',}
+
+        # self.eviction_list = ['__13_input data', '__25_input data', '__28_input data', '__47_input data', '__59_input data', '__63_input data', '__76_input data', ]
+        # self.evict_tensor_mode = {'__13_input data': 'swap', '__25_input data': 'swap', '__28_input data': 'swap', '__47_input data': 'swap', '__59_input data': 'swap', '__63_input data': 'swap', '__76_input data': 'swap',}
+
+        # s_cnt = 0
+        # r_cnt = 0
+        # for value in self.evict_tensor_mode.values():
+        #     if value == "swap":
+        #         s_cnt += 1
+        #     else:
+        #         r_cnt += 1
+        # print(f'swap: {s_cnt}, recompute: {r_cnt}')
         
         self.gen_op_list()
         # self.gen_op_list_evict()
+        # self.compile_function(evict=True)
         self.compile_function(evict=False)
 
-        # mem_cnt = 0
+        s_mem_cnt = 0
+        r_mem_cnt = 0
         # print(f'eviction_list: ', end="")
-        # for op in self.eviction_list:
-        #     # print(f'({op}, {self.data_memory[op]})', end=" ")
-        #     print(f'\"{op}\", ', end=" ")
-        #     mem_cnt += self.data_memory[op]
+        for op in self.eviction_list:
+            # print(f'({op}, {self.data_memory[op]})', end=" ")
+            # print(f'\"{op}\", ', end=" ")
+            # mem_cnt += self.data_memory[op]
+            if self.evict_tensor_mode[op] == "swap":
+                s_mem_cnt += self.data_memory[op]
+            else:
+                r_mem_cnt += self.data_memory[op]
         # print(f'\nmem_cnt: {mem_cnt}')
+        print(f'swap mem: {s_mem_cnt}, recompute mem: {r_mem_cnt}')
 
     def build(self):
         self.gen_op_list_evict()
@@ -137,6 +162,7 @@ class Asuta(torch.nn.Module):
         reverse_bwd_op_list = self.tmp_bwd_op_list[::-1]
         self.bwd_op_list = [op for bwlist in reverse_bwd_op_list for op in bwlist]
 
+        # print(f'fwd_op_list: {[[i, op.name] for i, op in enumerate(self.fwd_op_list)]}')
         self.logger.debug(f'fwd_op: {[op.name for op in self.fwd_op_list]}')
         self.logger.debug(f'bwd_op: {[op.name for op in self.bwd_op_list]}')
 
@@ -345,7 +371,7 @@ class Asuta(torch.nn.Module):
                     assert "grad" in user_name
                     data_name = user_name.replace("grad", "data")
                     if data_name in evict_list:
-                        print(f'need grad: {op.name}, {data_name}')
+                        # print(f'need grad: {op.name}, {data_name}')
                         regen_tensor(data_name)
             
                 for deps_name in op.deps_global:
@@ -563,19 +589,37 @@ class Asuta(torch.nn.Module):
 
                 
         if self.version == "s":
+            tt = 0
             for l in self.fwd_fct_list:  
                 self._exec(l)
-
-        else :
-            tt = 0
-            for code in self.fwd_compile_code:
-                exec(code, self.storage.gd, self.storage.ld)
                 max_mem = torch.cuda.max_memory_allocated()/1000/1000/1000
                 alloc_mem = torch.cuda.memory_allocated()/1000/1000/1000
                 if self.peak_memory_usage[0] < max_mem:
                     self.peak_memory_usage = [max_mem, tt, 'fw']
                 # print(f'forward: {tt}, {alloc_mem}, {max_mem}')
                 tt += 1
+
+        else :
+            tt = 0
+            now = time.time()
+            # print(f'forward: {now}')
+            for code in self.fwd_compile_code:
+                # start_time = time.time()
+                exec(code, self.storage.gd, self.storage.ld)
+                max_mem = torch.cuda.max_memory_allocated()/1000/1000/1000
+                alloc_mem = torch.cuda.memory_allocated()/1000/1000/1000
+                if self.peak_memory_usage[0] < max_mem:
+                    self.peak_memory_usage = [max_mem, tt, 'fw']
+                # end_time = time.time()
+                # print(f'forward: {tt}, {alloc_mem}, {max_mem}')
+                # print(f'foward: {tt}, {end_time-start_time}')
+                tt += 1
+
+                # if tt-1 < len(self.fwd_op_list):
+                #     _op = self.fwd_op_list[tt-1]
+                #     if "__80_input" in _op.name or "__271_input" in _op.name:
+                #         print(_op.name)
+                #         print(time.time()-now)
         
 
         return self.storage.get_val(self.graph.output.main_target)
@@ -585,11 +629,21 @@ class Asuta(torch.nn.Module):
         # execute the generated function list (backward)
 
         if self.version == "s":
+            tt = 0
             for i, l in enumerate(self.bwd_fct_list):
                 # print(f'backward: {i}')
                 self._exec(l)
+                max_mem = torch.cuda.max_memory_allocated()/1000/1000/1000
+                alloc_mem = torch.cuda.memory_allocated()/1000/1000/1000
+                if self.peak_memory_usage[0] < max_mem:
+                    self.peak_memory_usage = [max_mem, tt, 'bw']
+                # print(f'backward: {tt}, {alloc_mem}, {max_mem}')
+                tt += 1
+
         else:
             tt = 0
+            now = time.time()
+            # print(f'backward: {now}')
             for code in self.bwd_compile_code:
                 exec(code, self.storage.gd, self.storage.ld)
                 max_mem = torch.cuda.max_memory_allocated()/1000/1000/1000
@@ -598,6 +652,12 @@ class Asuta(torch.nn.Module):
                     self.peak_memory_usage = [max_mem, tt, 'bw']
                 # print(f'backward: {tt}, {alloc_mem}, {max_mem}')
                 tt += 1
+
+                # if tt-1 < len(self.bwd_op_list):
+                #     _op = self.bwd_op_list[tt-1]
+                #     if "__80_input" in _op.name or "__271_input" in _op.name:
+                #         print(_op.name)
+                #         print(time.time()-now)
 
         # for l in self.bwd_fct_list:
         #     self._exec(l)

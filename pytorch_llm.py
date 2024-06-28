@@ -27,7 +27,7 @@ llm_config = LLMConfig(
 )
 
 train_config = TrainingConfig(
-    retrain_tokenizer=True, batch_size=300, learning_rate=1e-4, weight_decay=1e-5, max_steps=10, log_frequency=1
+    retrain_tokenizer=True, batch_size=270, learning_rate=1e-4, weight_decay=1e-5, max_steps=100, log_frequency=1
 )
 
 with_optimizer = False
@@ -84,20 +84,8 @@ loss_history = train(
     ds_train,
     batch_size=train_config.batch_size,
     lr=train_config.learning_rate,
-    max_steps=train_config.max_steps,
+    max_steps=12800//train_config.batch_size,
     weight_decay=train_config.weight_decay,
     log_every=train_config.log_frequency,
     with_optimizer=with_optimizer
 )
-
-# torch.cuda.reset_peak_memory_stats()
-# max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
-# print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
-
-# inputs, labels = ds_train.get_batch(64)
-
-# for_test = Asuta(model, inputs)
-
-# outputs = for_test(inputs)
-# peak_mem = torch.cuda.max_memory_allocated() - max_before
-# print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')

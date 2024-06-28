@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
+import time
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -28,7 +29,7 @@ def train(
     weight_decay: float = 1e-2,
     device: str = DEVICE,
     log_every: int = 10,
-    with_optimizer: bool = True,
+    with_optimizer: bool = False,
 ) -> defaultdict:
     metrics_tracker = defaultdict(list)
     # val_loss_tracker = defaultdict(list)
@@ -41,6 +42,9 @@ def train(
     torch.cuda.reset_peak_memory_stats()
     max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
     print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
+    print(f'max_step: {max_steps}')
+
+    start = time.time()
 
     for step in range(max_steps):
         if with_optimizer:
@@ -58,13 +62,16 @@ def train(
             optimizer.step()
         # scheduler.step()
 
-        print(f'Step: {step}')
+        # print(f'Step: {step}')
         # metlossrics_tracker["train_loss"].append(loss.detach().cpu().item())
         # if step % log_every == 0 or step == max_steps - 1:
         #     log(step, max_steps, scheduler.get_last_lr()[-1], metrics_tracker)
 
         # val_loss = evaluate(model, dl_val, device)
         # val__tracker["val_loss"].append(val_loss)
+
+    end = time.time()
+    print(f'Training time (sec): {end-start}')
 
     peak_mem = torch.cuda.max_memory_allocated() - max_before
     print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')

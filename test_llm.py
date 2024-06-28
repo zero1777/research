@@ -92,8 +92,8 @@ print(f"model size: {size_all_mb:.3f}MB")
 # max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
 # print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
-inputs, y = ds_train.get_batch(200)
-x, y = ds_train.get_batch(200)
+inputs, y = ds_train.get_batch(230)
+x, y = ds_train.get_batch(250)
 x = [x.to("cuda")]
 inputs = [inputs.to("cuda")]
 model = model.to("cuda")
@@ -104,26 +104,42 @@ model = model.to("cuda")
 
 
 md = Modeler(model)
-new_model = md.build(inputs, 11.76, "default")
+# new_model = md.build(inputs, 11.5, "max_swap")
+new_model = md.build(inputs, 13, "max_swap")
+# new_model = md.build(inputs, 13.6, "maximum")
+# new_model = md.build(inputs, 13.6, "max_swap")
 
 del md
 torch.cuda.empty_cache()
 
-# torch.cuda.reset_peak_memory_stats()
-# max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
-# print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
+torch.cuda.reset_peak_memory_stats()
+max_before = torch.cuda.max_memory_allocated()/1000/1000/1000
+print(f"Before: {max_before}, {torch.cuda.memory_reserved()/1000/1000/1000}")
 
-# for _ in range(3):
-#     outputs = new_model(*x)
+for _ in range(3):
+    outputs = new_model(*x)
+    loss = outputs.mean()
+    loss.backward()
+    new_model.backward()
+
+    peak_mem = torch.cuda.max_memory_allocated() - max_before
+
+print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
+# 9.1833
+
+# import time
+# bs = 270
+# steps = 12800//bs
+# print(f'steps: {steps}')
+# start = time.time()
+
+# for _ in range(steps):
+#     a, b = ds_train.get_batch(bs)
+#     a = a.to("cuda")
+#     outputs = new_model(a)
 #     loss = outputs.mean()
 #     loss.backward()
 #     new_model.backward()
 
-#     peak_mem = torch.cuda.max_memory_allocated() - max_before
-
-# print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
-# 9.1833
-
-# outputs = for_test(inputs)
-# peak_mem = torch.cuda.max_memory_allocated() 
-# print(f'peak_mem (GB): {peak_mem/1000/1000/1000}')
+# end = time.time()
+# print(f"Training time (sec): {end-start}")

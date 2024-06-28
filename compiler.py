@@ -195,7 +195,7 @@ def fct_swapin(storage, tensor_name, swap_stream):
 def fct_swapout(storage, tensor_name, swap_stream):
     def fct():
         with torch.cuda.stream(swap_stream):
-            if tensor_name not in storage.cpu_ld.keys():
+            if tensor_name not in storage.cpu_ld.keys() or storage.cpu_ld[tensor_name].size() != storage.ld[tensor_name].size():
                 storage.cpu_ld[tensor_name] = torch.empty(storage.ld[tensor_name].size(), device="cpu", pin_memory=True)
             storage.cpu_ld[tensor_name].copy_(storage.ld[tensor_name], non_blocking=False)
             storage.cpu_ld[tensor_name] = storage.cpu_ld[tensor_name].detach()
@@ -244,6 +244,7 @@ class Storage:
 
     def add_val(self, val, x):
         self.ld[val] = x
+        # self.gd['cpu_ld'][val] = x
 
     def get_val(self, val):
         try:
@@ -488,7 +489,7 @@ class Compiler:
     
     def compile_swapout2(self, op):
         stream_code = f"with torch.cuda.stream(swap_stream):\n"
-        allocate_code = f"\tif '{op.main_target}' not in cpu_ld.keys(): cpu_ld['{op.main_target}'] = torch.empty({op.main_target}.size(), device='cpu', pin_memory=True)\n"
+        allocate_code = f"\tif '{op.main_target}' not in cpu_ld.keys() or cpu_ld['{op.main_target}'].size() != {op.main_target}.size(): cpu_ld['{op.main_target}'] = torch.empty({op.main_target}.size(), device='cpu', pin_memory=False)\n"
         swap_code = f"\tcpu_ld['{op.main_target}'].copy_({op.main_target}, non_blocking=False); cpu_ld['{op.main_target}'] = cpu_ld['{op.main_target}'].detach()\n" 
         # delete_code = self.compile_del_swap_tensor(op)
         delete_code = f"{op.main_target}.data = torch.empty(0, device=device); _{op.main_target}.data = torch.empty(0, device=device);\n"
